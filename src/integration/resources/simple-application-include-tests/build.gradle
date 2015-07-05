@@ -1,0 +1,27 @@
+buildscript {
+    repositories {
+        jcenter()
+    }
+}
+
+plugins {
+    id 'jcstress'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    jcenter()
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.13'
+}
+
+jcstress {
+    verbose = true
+    timeMillis = "200"
+    iterations = 1
+    includeTests = true
+}
