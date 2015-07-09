@@ -13,7 +13,7 @@
  See the License for the specific language governing permissions and
  limitations under the License.
  */
-package com.github.erizo.jcstress
+package com.github.erizo.gradle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -29,7 +29,7 @@ import org.gradle.api.tasks.testing.Test
  * Configures the Jcstress Plugin.
  *
  * @author Cédric Champeau
- * @author Jerzy Krolak
+ * @author Jerzy
  *
  */
 class JcstressPlugin implements Plugin<Project> {
