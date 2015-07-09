@@ -1,10 +1,7 @@
-package com.github.erizo.jcstress
+package com.github.erizo.gradle
 
 import org.gradle.api.Project
 
-/**
- * Created by jerzy on 2015-07-05.
- */
 class JcstressPluginExtension {
     def Project project;
 
