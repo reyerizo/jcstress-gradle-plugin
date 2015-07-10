@@ -1,6 +1,5 @@
 # Jcstress Gradle Plugin
-This plugin integrates
-Jcstress Gradle plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.net/projects/code-tools/jcstress) with Gradle.
+This plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.net/projects/code-tools/jcstress) with Gradle.
 
 ### Usage
 
