@@ -1,6 +1,15 @@
-group 'com.github.erizo.gradle'
-version '0.1'
+buildscript {
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath 'net.researchgate:gradle-release:2.1.2'
+    }
+}
 
+group 'com.github.erizo.gradle'
+
+apply plugin: 'net.researchgate.release'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 

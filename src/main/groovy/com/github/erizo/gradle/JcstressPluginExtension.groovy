@@ -8,7 +8,7 @@ import org.gradle.api.Project
 class JcstressPluginExtension {
     def Project project;
 
-    def jcstressDependency = 'org.openjdk.jcstress:jcstress-core:1.0-SNAPSHOT'
+    def jcstressDependency = 'com.github.erizo.gradle:org.openjdk.jcstress.jcstress-core:1.0-20150705182407'
 
     def include = ".*";
     def includeTests = false;
