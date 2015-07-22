@@ -4,17 +4,19 @@ buildscript {
     }
     dependencies {
         classpath 'net.researchgate:gradle-release:2.1.2'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
     }
 }
 
 group 'com.github.erizo.gradle'
 
+apply plugin: 'com.jfrog.bintray'
 apply plugin: 'net.researchgate.release'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
-sourceCompatibility=1.6
-targetCompatibility=1.6
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
 
 compileGroovy.options.encoding = 'UTF-8'
 
@@ -32,20 +34,46 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
 artifacts {
     archives sourcesJar
-    archives javadocJar
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
+            artifact sourcesJar
+        }
+    }
+}
+
+afterReleaseBuild.dependsOn bintrayUpload
+
+bintray {
+    user = bintray_user
+    key = bintray_api_key
+    publications = ['mavenJava']
+    dryRun = false
+    publish = true
+    pkg {
+        repo = 'maven'
+        name = 'jcstress-gradle-plugin'
+        desc = 'Jcstress gradle plugin'
+        websiteUrl = 'https://github.com/jerzykrlk/jcstress-gradle-plugin'
+        issueTrackerUrl = 'https://github.com/jerzykrlk/jcstress-gradle-plugin'
+        vcsUrl = 'https://github.com/jerzykrlk/jcstress-gradle-plugin.git'
+        licenses = ['Apache-2.0']
+        labels = ['jcstress', 'gradle', 'bintray']
+        publicDownloadNumbers = true
+        version {
+            name = project.version //Bintray logical version name
+            vcsTag = project.version
+            mavenCentralSync {
+                sync = false //Optional (true by default). Determines whether to sync the version to Maven Central.
+                user = 'userToken'
+                password = 'paasword'
+                close = '1'
+            }
         }
     }
 }
