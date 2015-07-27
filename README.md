@@ -35,11 +35,23 @@ gradle jcstress
 
 ### Configuration
 
+If you need to customize the configuration, add a block like the following to configure the plugin:
+
+```
+jcstress {
+    verbose = true
+    timeMillis = "200"
+    yield = true
+}
+```
+
+These are all possible configuration options:
+
 | Name | Description |
 | --- | --- |
-| `concurrency`   | Concurrency level for tests. This value can be greater than number of CPUs available. |
-| `deoptRatio`   | De-optimize (roughly) every N-th iteration. Larger value improves test performance, but decreases the chance we hit unlucky compilation. |
-| `forks`   | Should fork each test N times. `0` to run in the embedded mode with occasional forking, `-1` to never ever fork. |
+| `concurrency` | Concurrency level for tests. This value can be greater than number of CPUs available. |
+| `deoptRatio` | De-optimize (roughly) every N-th iteration. Larger value improves test performance, but decreases the chance we hit unlucky compilation. |
+| `forks` | Should fork each test N times. `0` to run in the embedded mode with occasional forking, `-1` to never ever fork. |
 | `iterations`   | Iterations per test. |
 | `jvmArgs`   | Append these JVM arguments for the forked runs. |
 | `mode`   | Test mode preset: `sanity`, `quick`, `default`, `tough`, `stress`. |
