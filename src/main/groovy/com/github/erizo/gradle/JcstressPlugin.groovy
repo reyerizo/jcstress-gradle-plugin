@@ -107,7 +107,7 @@ class JcstressPlugin implements Plugin<Project> {
             classpath = project.files { project.jcstressJar.archivePath }
             group = 'Verification'
             description = 'Runs jcstress benchmarks.'
-            jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
+            jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', '-Xbootclasspath/a:' + project.jcstressJar.archivePath]
 
             doFirst {
                 args = [*args, *extension.buildArgs()]
