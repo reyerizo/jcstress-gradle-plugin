@@ -14,7 +14,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.4'
+        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.5'
     }
 }
 
