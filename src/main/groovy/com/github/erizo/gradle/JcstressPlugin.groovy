@@ -15,15 +15,23 @@
  */
 package com.github.erizo.gradle
 
+import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolvableDependencies
-import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.distribution.Distribution
+import org.gradle.api.distribution.plugins.DistributionPlugin
+import org.gradle.api.file.CopySpec
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
+import org.gradle.plugins.ide.idea.IdeaPlugin
 
 /**
  * Configures the Jcstress Plugin.
@@ -34,95 +42,55 @@ import org.gradle.api.tasks.testing.Test
  */
 class JcstressPlugin implements Plugin<Project> {
 
+    static final String JCSTRESS_NAME = 'jcstress'
+    static final String TASK_JCSTRESS_NAME = JCSTRESS_NAME
+    static final String TASK_JCSTRESS_JAR_NAME = 'jcstressJar'
+    static final String TASK_JCSTRESS_INSTALL_NAME = 'jcstressInstall'
+    static final String TASK_JCSTRESS_SCRIPTS_NAME = "jcstressScripts"
+
+    private Project project
+
+    private String jcstressApplicationName
+
     void apply(Project project) {
-        project.plugins.apply(JavaPlugin)
-        final JcstressPluginExtension extension = project.extensions.create('jcstress', JcstressPluginExtension, project)
-        final Configuration configuration = project.configurations.create('jcstress')
+        this.project = project
+        this.jcstressApplicationName = project.name + "-jcstress"
+
+        project.pluginManager.apply(JavaPlugin)
+        project.pluginManager.apply(DistributionPlugin)
+
+        final JcstressPluginExtension extension = project.extensions.create(JCSTRESS_NAME, JcstressPluginExtension, project)
+
+        final Configuration jcstressConfiguration = project.configurations.create(JCSTRESS_NAME)
 
         final Configuration testConfiguration = project.configurations.testCompile
-        testConfiguration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
-            DependencyHandler dependencyHandler = project.getDependencies();
-            def dependencies = testConfiguration.getDependencies()
-            dependencies.add(dependencyHandler.create("${extension.jcstressDependency}"))
-        }
 
-        project.sourceSets {
-            jcstress {
-                java.srcDir 'src/jcstress/java'
-                if (project.plugins.hasPlugin('groovy')) {
-                    groovy.srcDir 'src/jcstress/groovy'
-                }
-                resources.srcDir 'src/jcstress/resources'
-                compileClasspath += project.configurations.jcstress + project.configurations.compile + main.output
-                runtimeClasspath += project.configurations.jcstress + project.configurations.runtime + main.output
+        final Dependency jcstressDependency = project.getDependencies().create("${extension.jcstressDependency}")
+        final Dependency whiteboxApiDependency = project.getDependencies().create("com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0")
 
-                if (extension.includeTests) {
-                    compileClasspath += project.configurations.testCompile
-                    runtimeClasspath += project.configurations.testRuntime
-                }
-            }
-        }
+        addDependenciesToConfiguration(jcstressConfiguration, jcstressDependency, whiteboxApiDependency)
+        addDependenciesToConfiguration(testConfiguration, jcstressDependency, whiteboxApiDependency)
 
-        configuration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
-            DependencyHandler dependencyHandler = project.getDependencies();
-            def dependencies = configuration.getDependencies()
-            dependencies.add(dependencyHandler.create("${extension.jcstressDependency}"))
-        }
+        addJcstressSourceSet(project, extension.includeTests)
 
-        def jcstressExclusions = {
-            exclude '**/META-INF/BenchmarkList'
-            exclude '**/META-INF/CompilerHints'
-        }
+        addJcstressJarTask(project, extension)
 
-        project.tasks.create(name: 'jcstressJar', type: Jar) {
-            dependsOn 'jcstressClasses'
-            inputs.dir project.sourceSets.jcstress.output
-            doFirst {
-                def filter = { it.isDirectory() ? it : project.zipTree(it) }
-                def exclusions = {
-                    exclude '**/META-INF/services/**'
-                    exclude '**/META-INF/*.SF'
-                    exclude '**/META-INF/*.DSA'
-                    exclude '**/META-INF/*.RSA'
-                }
-                from(project.configurations.jcstress.collect(filter), exclusions)
-                from(project.configurations.compile.collect(filter), exclusions)
-                from(project.sourceSets.jcstress.output)
-                from(project.sourceSets.main.output, jcstressExclusions)
-                if (extension.includeTests) {
-                    from(project.sourceSets.test.output, jcstressExclusions)
-                }
-            }
+        addJcstressTask(project, extension)
 
-            manifest {
-                attributes 'Main-Class': 'org.openjdk.jcstress.Main'
-            }
+        addCreateScriptsTask(project, extension.includeTests)
 
-            classifier = 'jcstress'
-        }
+        addJcstressToTestScope(project)
 
-        project.tasks.create(name: 'jcstress', type: JavaExec) {
-            dependsOn project.jcstressJar
-            main = 'org.openjdk.jcstress.Main'
-            classpath = project.files { project.jcstressJar.archivePath }
-            group = 'Verification'
-            description = 'Runs jcstress benchmarks.'
-            jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', '-Xbootclasspath/a:' + project.jcstressJar.archivePath]
+        Task installAppTask = addInstallAppTask(project)
 
-            doFirst {
-                args = [*args, *extension.buildArgs()]
-            }
-        }
+        configureInstallTasks(installAppTask, project.tasks[DistributionPlugin.TASK_INSTALL_NAME])
 
-        /** Intellij scope hack */
-        project.tasks.create(name: 'addJcstressToTestScope', type: Test) {
-            description = 'Adds jcstress to IDE test scope.'
-            testClassesDir = project.sourceSets.jcstress.output.classesDir
-            classpath = project.sourceSets.jcstress.runtimeClasspath
-        }
+        updateIdeaPluginConfiguration(project)
+    }
 
+    private updateIdeaPluginConfiguration(Project project) {
         project.afterEvaluate {
-            def hasIdea = project.plugins.findPlugin(org.gradle.plugins.ide.idea.IdeaPlugin)
+            def hasIdea = project.plugins.findPlugin(IdeaPlugin)
             if (hasIdea) {
                 project.idea {
                     module {
@@ -138,7 +106,183 @@ class JcstressPlugin implements Plugin<Project> {
                 }
             }
         }
+    }
 
+    private Task addJcstressToTestScope(Project project) {
+        /** Intellij scope hack */
+        project.tasks.create(name: 'addJcstressToTestScope', type: Test) {
+            description = 'Adds jcstress to IDE test scope.'
+            testClassesDir = project.sourceSets.jcstress.output.classesDir
+            classpath = project.sourceSets.jcstress.runtimeClasspath
+        }
+    }
+
+    private void addJcstressJarTask(Project project, extension) {
+        def jcstressExclusions = {
+            exclude '**/META-INF/BenchmarkList'
+            exclude '**/META-INF/CompilerHints'
+        }
+
+        project.tasks.create(name: TASK_JCSTRESS_JAR_NAME, type: Jar) {
+            dependsOn 'jcstressClasses'
+            inputs.dir project.sourceSets.jcstress.output
+            doFirst {
+                from(project.sourceSets.jcstress.output)
+                from(project.sourceSets.main.output, jcstressExclusions)
+                if (extension.includeTests) {
+                    from(project.sourceSets.test.output, jcstressExclusions)
+                }
+            }
+
+            classifier = 'jcstress'
+        }
+    }
+
+    private Task addJcstressTask(Project project, JcstressPluginExtension extension) {
+        project.tasks.create(name: TASK_JCSTRESS_NAME, type: JavaExec) {
+            dependsOn project.jcstressJar
+            main = 'org.openjdk.jcstress.Main'
+            group = 'Verification'
+            description = 'Runs jcstress benchmarks.'
+            jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
+
+            doFirst {
+                args = [*args, *extension.buildArgs()]
+                jvmArgs += '-Xbootclasspath/a:' + getWhiteboxJarFromConfiguration(project.configurations.jcstress, "whitebox")
+                classpath += getJarsFromConfigurations(project.configurations.jcstress, project.configurations.runtime, project.configurations.testRuntime, project.files {
+                    project.jcstressJar.archivePath
+                }, extension)
+            }
+        }
+    }
+
+    void configureInstallTasks(Task... installTasks) {
+        installTasks.each { installTask ->
+            installTask.doFirst {
+                if (destinationDir.directory) {
+                    if (!new File(destinationDir, 'lib').directory || !new File(destinationDir, 'bin').directory) {
+                        throw new GradleException("The specified installation directory '${destinationDir}' is neither empty nor does it contain an installation for this application.\n" +
+                                "If you really want to install to this directory, delete it and run the install task again.\n" +
+                                "Alternatively, choose a different installation directory."
+                        )
+                    }
+                }
+            }
+            installTask.doLast {
+                project.ant.chmod(file: "${destinationDir.absolutePath}/bin/${jcstressApplicationName}", perm: 'ugo+x')
+            }
+        }
+    }
+
+    private CopySpec configureDistSpec(Project project, CopySpec distSpec) {
+        def jar = project.tasks[TASK_JCSTRESS_JAR_NAME]
+        def startScripts = project.tasks[TASK_JCSTRESS_SCRIPTS_NAME]
+
+        distSpec.with {
+            from(project.file("src/dist"))
+
+            into("lib") {
+                from(jar)
+                from(project.configurations.jcstress + project.configurations.runtime)
+            }
+            into("bin") {
+                from(startScripts)
+                fileMode = 0755
+            }
+        }
+//        distSpec.with(pluginConvention.applicationDistribution)
+
+        distSpec
+    }
+
+    private Task addInstallAppTask(Project project) {
+        Distribution distribution = project.distributions[DistributionPlugin.MAIN_DISTRIBUTION_NAME]
+        distribution.conventionMapping.baseName = { jcstressApplicationName }
+        configureDistSpec(project, distribution.contents)
+
+        def installTask = project.tasks.create(TASK_JCSTRESS_INSTALL_NAME, Sync)
+        installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
+        installTask.group = 'Verification'
+        installTask.with distribution.contents
+        installTask.into { project.file("${project.buildDir}/install/${jcstressApplicationName}") }
+        installTask
+    }
+
+
+    private void addJcstressSourceSet(Project project, includeTests) {
+        project.sourceSets {
+            jcstress {
+                java.srcDir 'src/jcstress/java'
+                if (project.plugins.hasPlugin('groovy')) {
+                    groovy.srcDir 'src/jcstress/groovy'
+                }
+                resources.srcDir 'src/jcstress/resources'
+
+                compileClasspath += project.configurations.jcstress + project.configurations.compile + main.output
+                runtimeClasspath += project.configurations.jcstress + project.configurations.runtime + main.output
+
+                if (includeTests) {
+                    compileClasspath += project.configurations.testCompile
+                    runtimeClasspath += project.configurations.testRuntime
+                }
+            }
+        }
+    }
+
+    // @Todo: refactor this task configuration to extend a copy task and use replace tokens
+    private void addCreateScriptsTask(Project project, boolean includeTests) {
+        project.tasks.create(TASK_JCSTRESS_SCRIPTS_NAME, CreateStartScripts) {
+            description = "Creates OS specific scripts to run the project as a jcstress test suite."
+            classpath = project.tasks[TASK_JCSTRESS_JAR_NAME].outputs.files + project.configurations.jcstress + project.configurations.runtime
+            conventionMapping.mainClassName = { 'org.openjdk.jcstress.Main' }
+            conventionMapping.applicationName = { jcstressApplicationName }
+            conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
+            conventionMapping.defaultJvmOpts = {
+                ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', '-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar']
+            }
+
+            doFirst {
+                if (includeTests) {
+                    classpath += project.configurations.testRuntime
+                }
+            }
+        }
+    }
+
+    private static addDependenciesToConfiguration(
+            Configuration testConfiguration,
+            Dependency jcstressDependency,
+            Dependency whiteboxApiDependency) {
+        testConfiguration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
+            def dependencies = testConfiguration.getDependencies()
+            dependencies.add(jcstressDependency)
+            dependencies.add(whiteboxApiDependency)
+        }
+    }
+
+    static def getJarsFromConfigurations(
+            Configuration configuration,
+            Configuration runtimeConfiguration,
+            Configuration testRuntimeConfiguration, def buildJars, def extension) {
+        def files = []
+        files.addAll(configuration.files)
+        files.addAll(runtimeConfiguration.files)
+        if (extension.includeTests) {
+            files.addAll(testRuntimeConfiguration.files)
+        }
+        files.addAll(buildJars)
+        files
+    }
+
+    private static def getWhiteboxJarFromConfiguration(
+            def configuration, String jarFileName) {
+        def files = []
+        configuration.files.each({
+            if (it.name.contains(jarFileName)) {
+                files.add(it)
+            }
+        })
+        files[0]
     }
 
 }
