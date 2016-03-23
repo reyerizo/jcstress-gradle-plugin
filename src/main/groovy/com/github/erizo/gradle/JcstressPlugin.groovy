@@ -47,6 +47,7 @@ class JcstressPlugin implements Plugin<Project> {
     static final String TASK_JCSTRESS_JAR_NAME = 'jcstressJar'
     static final String TASK_JCSTRESS_INSTALL_NAME = 'jcstressInstall'
     static final String TASK_JCSTRESS_SCRIPTS_NAME = "jcstressScripts"
+    static final String WHITEBOX_API_DEPENDENCY = "com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0"
 
     private Project project
 
@@ -66,7 +67,8 @@ class JcstressPlugin implements Plugin<Project> {
         final Configuration testConfiguration = project.configurations.testCompile
 
         final Dependency jcstressDependency = project.getDependencies().create("${extension.jcstressDependency}")
-        final Dependency whiteboxApiDependency = project.getDependencies().create("com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0")
+
+        final Dependency whiteboxApiDependency = project.getDependencies().create(WHITEBOX_API_DEPENDENCY)
 
         addDependenciesToConfiguration(jcstressConfiguration, jcstressDependency, whiteboxApiDependency)
         addDependenciesToConfiguration(testConfiguration, jcstressDependency, whiteboxApiDependency)
@@ -250,11 +252,11 @@ class JcstressPlugin implements Plugin<Project> {
     }
 
     private static addDependenciesToConfiguration(
-            Configuration testConfiguration,
+            Configuration configuration,
             Dependency jcstressDependency,
             Dependency whiteboxApiDependency) {
-        testConfiguration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
-            def dependencies = testConfiguration.getDependencies()
+        configuration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
+            def dependencies = configuration.getDependencies()
             dependencies.add(jcstressDependency)
             dependencies.add(whiteboxApiDependency)
         }
