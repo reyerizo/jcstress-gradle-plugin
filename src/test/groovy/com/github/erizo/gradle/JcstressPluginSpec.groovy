@@ -68,6 +68,15 @@ public class JcstressPluginSpec extends Specification {
         project.tasks['jcstressInstall'] instanceof Sync
     }
 
+    def "should add default jvm args to jsctress task"() {
+        when:
+        plugin.apply(project)
+        def jcstressTask = project.tasks['jcstress']
+
+        then:
+        jcstressTask.jvmArgs.containsAll(['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended'])
+    }
+
     def "should add jcstress dependencies to jcstress configuration"() {
         given:
         def whiteboxApiDependency = project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY)
