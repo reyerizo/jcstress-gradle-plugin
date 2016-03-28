@@ -148,6 +148,7 @@ class JcstressPlugin implements Plugin<Project> {
             description = 'Runs jcstress benchmarks.'
             jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
 
+            // TODO: flatten somehow, so that we get rid of doFirst here
             doFirst {
                 args = [*args, *extension.buildArgs()]
                 jvmArgs += '-Xbootclasspath/a:' + getWhiteboxJarFromConfiguration(project.configurations.jcstress, "whitebox")
