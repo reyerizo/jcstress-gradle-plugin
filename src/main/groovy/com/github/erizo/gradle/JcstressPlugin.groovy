@@ -60,26 +60,26 @@ class JcstressPlugin implements Plugin<Project> {
         project.pluginManager.apply(JavaPlugin)
         project.pluginManager.apply(DistributionPlugin)
 
-        final JcstressPluginExtension extension = project.extensions.create(JCSTRESS_NAME, JcstressPluginExtension, project)
+        final JcstressPluginExtension jcstressPluginExtension = project.extensions.create(JCSTRESS_NAME, JcstressPluginExtension, project)
 
         final Configuration jcstressConfiguration = project.configurations.create(JCSTRESS_NAME)
 
         final Configuration testConfiguration = project.configurations.testCompile
 
-        final Dependency jcstressDependency = project.getDependencies().create("${extension.jcstressDependency}")
+        final Dependency jcstressDependency = project.getDependencies().create("${jcstressPluginExtension.jcstressDependency}")
 
         final Dependency whiteboxApiDependency = project.getDependencies().create(WHITEBOX_API_DEPENDENCY)
 
         addDependenciesToConfiguration(jcstressConfiguration, jcstressDependency, whiteboxApiDependency)
         addDependenciesToConfiguration(testConfiguration, jcstressDependency, whiteboxApiDependency)
 
-        addJcstressSourceSet(project, extension.includeTests)
+        addJcstressSourceSet(project, jcstressPluginExtension.includeTests)
 
-        addJcstressJarTask(project, extension)
+        addJcstressJarTask(project, jcstressPluginExtension)
 
-        addJcstressTask(project, extension)
+        addJcstressTask(project, jcstressPluginExtension)
 
-        addCreateScriptsTask(project, extension.includeTests)
+        addCreateScriptsTask(project, jcstressPluginExtension.includeTests)
 
         addJcstressToTestScope(project)
 
@@ -232,6 +232,7 @@ class JcstressPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
+    // @Todo: whitebox-api lib dependency should go into new scripts (win / unix)
     private void addCreateScriptsTask(Project project, boolean includeTests) {
         project.tasks.create(TASK_JCSTRESS_SCRIPTS_NAME, CreateStartScripts) {
             description = "Creates OS specific scripts to run the project as a jcstress test suite."

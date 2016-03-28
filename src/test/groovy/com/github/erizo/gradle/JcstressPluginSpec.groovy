@@ -41,7 +41,7 @@ public class JcstressPluginSpec extends Specification {
         plugin.apply(project)
 
         then:
-        project.tasks.findByName('jcstress') instanceof JavaExec
+        project.tasks['jcstress'] instanceof JavaExec
     }
 
     def "should add jcstress configuration"() {
@@ -49,7 +49,7 @@ public class JcstressPluginSpec extends Specification {
         plugin.apply(project)
 
         then:
-        project.configurations.findByName('jcstress') instanceof Configuration
+        project.configurations['jcstress'] instanceof Configuration
     }
 
     def "should add jcstressJar task"() {
@@ -57,7 +57,7 @@ public class JcstressPluginSpec extends Specification {
         plugin.apply(project)
 
         then:
-        project.tasks.findByName('jcstressJar') instanceof Jar
+        project.tasks['jcstressJar'] instanceof Jar
     }
 
     def "should add jcstressInstall task"() {
@@ -65,31 +65,41 @@ public class JcstressPluginSpec extends Specification {
         plugin.apply(project)
 
         then:
-        project.tasks.findByName('jcstressInstall') instanceof Sync
+        project.tasks['jcstressInstall'] instanceof Sync
     }
 
-    def "should add whitebox-api dependency to jcstress configuration only"() {
+    def "should add jcstress dependencies to jcstress configuration"() {
         given:
-        project.apply(plugin: IdeaPlugin)
-        plugin.apply(project)
+        def whiteboxApiDependency = project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY)
+        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20150729205107')
 
         when:
-        project.evaluate()
-
-        DefaultConfiguration jcstressConfiguration = project.configurations.findByName("jcstress")
-        jcstressConfiguration.getResolvedConfiguration()
+        plugin.apply(project)
 
         then:
-        jcstressConfiguration.allDependencies.contains(project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY))
+        getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
+        getConfiguration("jcstress").allDependencies.contains(jcstressDependency)
     }
 
+    def "should not add jcstress dependencies to compile configuration"() {
+        given:
+        def whiteboxApiDependency = project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY)
+        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20150729205107')
+
+        when:
+        plugin.apply(project)
+
+        then:
+        !getConfiguration("compile").allDependencies.contains(whiteboxApiDependency)
+        !getConfiguration("compile").allDependencies.contains(jcstressDependency)
+    }
 
     def "should add jcstress configuration to test scope with Intellij plugin"() {
         given:
         project.apply(plugin: IdeaPlugin)
-        plugin.apply(project)
 
         when:
+        plugin.apply(project)
         project.evaluate()
 
         then:
@@ -99,9 +109,9 @@ public class JcstressPluginSpec extends Specification {
     def "should add jcstress sources to test sources with Intellij plugin"() {
         given:
         project.apply(plugin: IdeaPlugin)
-        plugin.apply(project)
 
         when:
+        plugin.apply(project)
         project.evaluate()
 
         then:
@@ -116,5 +126,10 @@ public class JcstressPluginSpec extends Specification {
                 .build()
     }
 
+    private DefaultConfiguration getConfiguration(String configurationName) {
+        DefaultConfiguration configuration = project.configurations[configurationName]
+        configuration.getResolvedConfiguration()
+        return configuration
+    }
 
 }
