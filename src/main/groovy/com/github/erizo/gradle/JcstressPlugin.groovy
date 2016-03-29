@@ -20,8 +20,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
@@ -62,16 +60,9 @@ class JcstressPlugin implements Plugin<Project> {
 
         final JcstressPluginExtension jcstressPluginExtension = project.extensions.create(JCSTRESS_NAME, JcstressPluginExtension, project)
 
-        final Configuration jcstressConfiguration = project.configurations.create(JCSTRESS_NAME)
+        addJcstressConfiguration()
 
-        final Configuration testConfiguration = project.configurations.testCompile
-
-        final Dependency jcstressDependency = project.getDependencies().create("${jcstressPluginExtension.jcstressDependency}")
-
-        final Dependency whiteboxApiDependency = project.getDependencies().create(WHITEBOX_API_DEPENDENCY)
-
-        addDependenciesToConfiguration(jcstressConfiguration, jcstressDependency, whiteboxApiDependency)
-        addDependenciesToConfiguration(testConfiguration, jcstressDependency, whiteboxApiDependency)
+        addJcstressJarDependencies(jcstressPluginExtension)
 
         addJcstressSourceSet(project, jcstressPluginExtension.includeTests)
 
@@ -88,6 +79,19 @@ class JcstressPlugin implements Plugin<Project> {
         configureInstallTasks(installAppTask, project.tasks[DistributionPlugin.TASK_INSTALL_NAME])
 
         updateIdeaPluginConfiguration(project)
+    }
+
+    private addJcstressJarDependencies(jcstressPluginExtension) {
+        project.dependencies {
+            jcstress "${jcstressPluginExtension.jcstressDependency}"
+            jcstress WHITEBOX_API_DEPENDENCY
+            testCompile "${jcstressPluginExtension.jcstressDependency}"
+            testCompile WHITEBOX_API_DEPENDENCY
+        }
+    }
+
+    private Configuration addJcstressConfiguration() {
+        project.configurations.create(JCSTRESS_NAME)
     }
 
     private updateIdeaPluginConfiguration(Project project) {
@@ -149,7 +153,7 @@ class JcstressPlugin implements Plugin<Project> {
             jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
 
             // TODO: flatten somehow, so that we get rid of doFirst here
-            doFirst {
+            project.afterEvaluate {
                 args = [*args, *extension.buildArgs()]
                 jvmArgs += '-Xbootclasspath/a:' + getWhiteboxJarFromConfiguration(project.configurations.jcstress, "whitebox")
                 classpath += getJarsFromConfigurations(project.configurations.jcstress, project.configurations.runtime, project.configurations.testRuntime, project.files {
@@ -250,17 +254,6 @@ class JcstressPlugin implements Plugin<Project> {
                     classpath += project.configurations.testRuntime
                 }
             }
-        }
-    }
-
-    private static addDependenciesToConfiguration(
-            Configuration configuration,
-            Dependency jcstressDependency,
-            Dependency whiteboxApiDependency) {
-        configuration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
-            def dependencies = configuration.getDependencies()
-            dependencies.add(jcstressDependency)
-            dependencies.add(whiteboxApiDependency)
         }
     }
 

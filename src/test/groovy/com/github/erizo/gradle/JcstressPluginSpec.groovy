@@ -106,6 +106,10 @@ public class JcstressPluginSpec extends Specification {
     def "should add jcstress configuration to test scope with Intellij plugin"() {
         given:
         project.apply(plugin: IdeaPlugin)
+        project.repositories {
+            mavenCentral()
+            jcenter()
+        }
 
         when:
         plugin.apply(project)
@@ -118,6 +122,10 @@ public class JcstressPluginSpec extends Specification {
     def "should add jcstress sources to test sources with Intellij plugin"() {
         given:
         project.apply(plugin: IdeaPlugin)
+        project.repositories {
+            mavenCentral()
+            jcenter()
+        }
 
         when:
         plugin.apply(project)
@@ -136,9 +144,7 @@ public class JcstressPluginSpec extends Specification {
     }
 
     private DefaultConfiguration getConfiguration(String configurationName) {
-        DefaultConfiguration configuration = project.configurations[configurationName]
-        configuration.getResolvedConfiguration()
-        return configuration
+       return project.configurations[configurationName]
     }
 
 }
