@@ -156,9 +156,10 @@ class JcstressPlugin implements Plugin<Project> {
             project.afterEvaluate {
                 args = [*args, *extension.buildArgs()]
                 jvmArgs += '-Xbootclasspath/a:' + getWhiteboxJarFromConfiguration(project.configurations.jcstress, "whitebox")
-                classpath += getJarsFromConfigurations(project.configurations.jcstress, project.configurations.runtime, project.configurations.testRuntime, project.files {
-                    project.jcstressJar.archivePath
-                }, extension)
+                classpath += project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime + project.jcstressJar.archivePath
+                if (extension.includeTests) {
+                    classpath += project.configurations.testRuntime
+                }
             }
         }
     }
@@ -255,20 +256,6 @@ class JcstressPlugin implements Plugin<Project> {
                 }
             }
         }
-    }
-
-    static def getJarsFromConfigurations(
-            Configuration configuration,
-            Configuration runtimeConfiguration,
-            Configuration testRuntimeConfiguration, def buildJars, def extension) {
-        def files = []
-        files.addAll(configuration.files)
-        files.addAll(runtimeConfiguration.files)
-        if (extension.includeTests) {
-            files.addAll(testRuntimeConfiguration.files)
-        }
-        files.addAll(buildJars)
-        files
     }
 
     private static def getWhiteboxJarFromConfiguration(
