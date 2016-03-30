@@ -154,8 +154,12 @@ class JcstressPlugin implements Plugin<Project> {
 
             // TODO: flatten somehow, so that we get rid of doFirst here
             project.afterEvaluate {
+                // TODO move to above
                 args = [*args, *extension.buildArgs()]
+
+                //TODO: move to bootclasspath above
                 jvmArgs += '-Xbootclasspath/a:' + getWhiteboxJarFromConfiguration(project.configurations.jcstress, "whitebox")
+
                 classpath += project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime + project.jcstressJar.archivePath
                 if (extension.includeTests) {
                     classpath += project.configurations.testRuntime

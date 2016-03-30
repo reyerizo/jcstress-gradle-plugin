@@ -77,6 +77,21 @@ public class JcstressPluginSpec extends Specification {
         jcstressTask.jvmArgs.containsAll(['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended'])
     }
 
+    def "should add whitebox-api to boot classpath"() {
+        given:
+        project.repositories {
+            mavenCentral()
+            jcenter()
+        }
+
+        when:
+        plugin.apply(project)
+        project.evaluate()
+
+        then:
+        project.tasks['jcstress'].jvmArgs.findAll({ it.contains('whitebox') }).size() == 1
+    }
+
     def "should add jcstress dependencies to jcstress configuration"() {
         given:
         def whiteboxApiDependency = project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY)
@@ -144,7 +159,7 @@ public class JcstressPluginSpec extends Specification {
     }
 
     private DefaultConfiguration getConfiguration(String configurationName) {
-       return project.configurations[configurationName]
+        return project.configurations[configurationName]
     }
 
 }
