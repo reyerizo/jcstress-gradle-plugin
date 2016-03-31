@@ -3,8 +3,10 @@ package com.github.erizo.gradle
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.distribution.plugins.DistributionPlugin
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
@@ -19,6 +21,13 @@ public class JcstressPluginSpec extends Specification {
 
     private final Project project = createRootProject()
     private final JcstressPlugin plugin = new JcstressPlugin()
+
+    def setup() {
+        project.repositories {
+            mavenCentral()
+            jcenter()
+        }
+    }
 
     def "should apply JavaPlugin"() {
         when:
@@ -42,6 +51,26 @@ public class JcstressPluginSpec extends Specification {
 
         then:
         project.tasks['jcstress'] instanceof JavaExec
+    }
+
+    def "should create jcstress source set"() {
+        when:
+        plugin.apply(project)
+
+        then:
+        project.sourceSets.jcstress.java.source == ['src/jcstress/java']
+        project.sourceSets.jcstress.resources.source == ['src/jcstress/resources']
+    }
+
+    def "should add groovy source set if groovy plugin enabled"() {
+        when:
+        project.apply(plugin: GroovyPlugin)
+        plugin.apply(project)
+
+        then:
+        project.sourceSets.jcstress.java.source == ['src/jcstress/java']
+        project.sourceSets.jcstress.groovy.source == ['src/jcstress/groovy']
+        project.sourceSets.jcstress.resources.source == ['src/jcstress/resources']
     }
 
     def "should add jcstress configuration"() {
@@ -71,25 +100,39 @@ public class JcstressPluginSpec extends Specification {
     def "should add default jvm args to jsctress task"() {
         when:
         plugin.apply(project)
+        project.evaluate()
         def jcstressTask = project.tasks['jcstress']
 
         then:
         jcstressTask.jvmArgs.containsAll(['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended'])
     }
 
-    def "should add whitebox-api to boot classpath"() {
+    def "should add jcstress configuration arguments to jsctress task"() {
         given:
-        project.repositories {
-            mavenCentral()
-            jcenter()
+        plugin.apply(project)
+        project.jcstress {
+            timeMillis = "200"
+            forks = 30
         }
 
         when:
-        plugin.apply(project)
+        project.tasks.jcstress.args = ["asdf"]
         project.evaluate()
+        def jcstressTask = project.tasks['jcstress']
 
         then:
-        project.tasks['jcstress'].jvmArgs.findAll({ it.contains('whitebox') }).size() == 1
+        jcstressTask.args.containsAll(['asdf', '-f', '30', '-time', '200'])
+    }
+
+    def "should add only whitebox api to jsctress boot classpath"() {
+        given:
+        plugin.apply(project)
+
+        when:
+        def jcstressTask = project.tasks['jcstress']
+
+        then:
+        getFileNames(jcstressTask.bootstrapClasspath) == ["sun.hotspot.whitebox-api-1.0.jar"]
     }
 
     def "should add jcstress dependencies to jcstress configuration"() {
@@ -121,10 +164,6 @@ public class JcstressPluginSpec extends Specification {
     def "should add jcstress configuration to test scope with Intellij plugin"() {
         given:
         project.apply(plugin: IdeaPlugin)
-        project.repositories {
-            mavenCentral()
-            jcenter()
-        }
 
         when:
         plugin.apply(project)
@@ -137,10 +176,6 @@ public class JcstressPluginSpec extends Specification {
     def "should add jcstress sources to test sources with Intellij plugin"() {
         given:
         project.apply(plugin: IdeaPlugin)
-        project.repositories {
-            mavenCentral()
-            jcenter()
-        }
 
         when:
         plugin.apply(project)
@@ -160,6 +195,10 @@ public class JcstressPluginSpec extends Specification {
 
     private DefaultConfiguration getConfiguration(String configurationName) {
         return project.configurations[configurationName]
+    }
+
+    private static Collection<String> getFileNames(FileCollection fileCollection) {
+        fileCollection.collect { it.getName() }
     }
 
 }
