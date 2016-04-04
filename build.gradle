@@ -15,8 +15,8 @@ apply plugin: 'net.researchgate.release'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 
-sourceCompatibility = 1.6
-targetCompatibility = 1.6
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 compileGroovy.options.encoding = 'UTF-8'
 
@@ -27,6 +27,9 @@ repositories {
 dependencies {
     compile localGroovy()
     compile gradleApi()
+    testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
+        exclude(module: 'groovy-all')
+    }
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
