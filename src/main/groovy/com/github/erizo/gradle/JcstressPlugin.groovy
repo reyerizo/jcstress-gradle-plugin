@@ -153,7 +153,6 @@ class JcstressPlugin implements Plugin<Project> {
             description = ['Runs jcstress benchmarks.']
             jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
             classpath = project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime
-            bootstrapClasspath = project.configurations.jcstress.filter({ it.name.contains('whitebox') })
 
             if (extension.includeTests) {
                 classpath += project.configurations.testRuntime
@@ -162,8 +161,8 @@ class JcstressPlugin implements Plugin<Project> {
             project.afterEvaluate {
                 args = [*args, *extension.buildArgs()]
                 classpath += [project.jcstressJar.archivePath]
+                jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
             }
-
         }
     }
 
@@ -251,6 +250,10 @@ class JcstressPlugin implements Plugin<Project> {
                 }
             }
         }
+    }
+
+    private static def getJarFromConfiguration(Configuration configuration, String jarFileName) {
+        configuration.filter({ it.name.contains(jarFileName) }).files.first()
     }
 
 }

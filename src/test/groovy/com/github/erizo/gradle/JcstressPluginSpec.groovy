@@ -124,15 +124,13 @@ public class JcstressPluginSpec extends Specification {
         jcstressTask.args.containsAll(['asdf', '-f', '30', '-time', '200'])
     }
 
-    def "should add only whitebox api to jsctress boot classpath"() {
-        given:
-        plugin.apply(project)
-
+    def "should add whitebox-api to boot classpath"() {
         when:
-        def jcstressTask = project.tasks['jcstress']
+        plugin.apply(project)
+        project.evaluate()
 
         then:
-        getFileNames(jcstressTask.bootstrapClasspath) == ["sun.hotspot.whitebox-api-1.0.jar"]
+        project.tasks['jcstress'].jvmArgs.findAll({ it.contains('whitebox') }).size() == 1
     }
 
     def "should add jcstress dependencies to jcstress configuration"() {
@@ -198,7 +196,7 @@ public class JcstressPluginSpec extends Specification {
     }
 
     private static Collection<String> getFileNames(FileCollection fileCollection) {
-        fileCollection.collect { it.getName() }
+        fileCollection.files.collect { it.getName() }
     }
 
 }
