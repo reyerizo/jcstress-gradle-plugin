@@ -6,7 +6,7 @@ This plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.n
 Add the following to your `build.gradle`:
 
 _build.gradle:_
-```java
+```groovy
 
 buildscript {
     repositories {
@@ -14,7 +14,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.5'
+        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.6'
     }
 }
 
@@ -74,7 +74,7 @@ src/jcstress/resources  // resources
 
 By default, the plugin uses a snapshot build of `jcstress` library. This can be easily overridden with another custom build:
 
-```java
+```groovy
 jcstress {
     jcstressDependency 'org.openjdk.jcstress:jcstress-core:1.0-SNAPSHOT'
 }
