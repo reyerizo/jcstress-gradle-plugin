@@ -154,14 +154,13 @@ class JcstressPlugin implements Plugin<Project> {
             jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
             classpath = project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime
 
-            if (extension.includeTests) {
-                classpath += project.configurations.testRuntime
-            }
-
             project.afterEvaluate {
                 args = [*args, *extension.buildArgs()]
-                classpath += [project.jcstressJar.archivePath]
+                classpath.plus(project.jcstressJar.archivePath)
                 jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
+                if (extension.includeTests) {
+                    classpath += project.configurations.testRuntime
+                }
             }
         }
     }

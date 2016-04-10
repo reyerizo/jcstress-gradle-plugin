@@ -124,6 +124,46 @@ public class JcstressPluginSpec extends Specification {
         jcstressTask.args.containsAll(['asdf', '-f', '30', '-time', '200'])
     }
 
+    def "should include tests in jcstress tasks if includeTests is true"() {
+        given:
+        plugin.apply(project)
+
+        project.jcstress {
+            includeTests = true
+        }
+
+        project.dependencies {
+            testCompile 'org.springframework:spring-core:4.0.0.RELEASE'
+        }
+
+        when:
+        project.evaluate()
+        def jcstressTask = project.tasks.jcstress
+
+        then:
+        jcstressTask.classpath.filter({it.name.contains('spring-core')}).size() == 1
+    }
+
+    def "should not include tests in jcstress tasks if includeTests is false"() {
+        given:
+        plugin.apply(project)
+
+        project.jcstress {
+            includeTests = false
+        }
+
+        project.dependencies {
+            testCompile 'org.springframework:spring-core:4.0.0.RELEASE'
+        }
+
+        when:
+        project.evaluate()
+        def jcstressTask = project.tasks.jcstress
+
+        then:
+        jcstressTask.classpath.filter({it.name.contains('spring-core')}).size() == 0
+    }
+
     def "should add whitebox-api to boot classpath"() {
         when:
         plugin.apply(project)
