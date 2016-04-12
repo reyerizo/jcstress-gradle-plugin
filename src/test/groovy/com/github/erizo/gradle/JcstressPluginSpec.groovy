@@ -10,6 +10,7 @@ import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
+import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.testfixtures.ProjectBuilder
@@ -141,7 +142,7 @@ public class JcstressPluginSpec extends Specification {
         def jcstressTask = project.tasks.jcstress
 
         then:
-        jcstressTask.classpath.filter({it.name.contains('spring-core')}).size() == 1
+        jcstressTask.classpath.files.containsAll(project.configurations.testCompile.files)
     }
 
     def "should not include tests in jcstress tasks if includeTests is false"() {
@@ -162,6 +163,28 @@ public class JcstressPluginSpec extends Specification {
 
         then:
         jcstressTask.classpath.filter({it.name.contains('spring-core')}).size() == 0
+    }
+
+    def "should include tests in jcstress sourceSet classpath if includeTests is true"() {
+        given:
+        plugin.apply(project)
+
+        project.jcstress {
+            includeTests = true
+        }
+
+        project.dependencies {
+            testCompile 'org.springframework:spring-core:4.0.0.RELEASE'
+        }
+
+        when:
+        project.evaluate()
+        def compileClasspath = project.sourceSets.jcstress.compileClasspath
+        def runtimeClasspath = project.sourceSets.jcstress.runtimeClasspath
+
+        then:
+        compileClasspath.files.containsAll(project.configurations.testCompile.files)
+        runtimeClasspath.files.containsAll(project.configurations.testCompile.files)
     }
 
     def "should add whitebox-api to boot classpath"() {
@@ -221,6 +244,19 @@ public class JcstressPluginSpec extends Specification {
 
         then:
         project.idea.module.testSourceDirs.containsAll(project.sourceSets.jcstress.java.srcDirs)
+    }
+
+    def "should add jsctress scripts task"() {
+        given:
+        plugin.apply(project)
+
+        when:
+        def scriptTask = project.tasks.jcstressScripts
+
+        then:
+        scriptTask instanceof CreateStartScripts
+        scriptTask.mainClassName == 'org.openjdk.jcstress.Main'
+        scriptTask.applicationName == 'myjcstressproject-jcstress'
     }
 
     static DefaultProject createRootProject() {

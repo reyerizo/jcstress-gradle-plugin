@@ -65,13 +65,13 @@ class JcstressPlugin implements Plugin<Project> {
 
         addJcstressJarDependencies(jcstressPluginExtension)
 
-        addJcstressSourceSet(jcstressPluginExtension.includeTests)
+        addJcstressSourceSet(jcstressPluginExtension)
 
         addJcstressJarTask(jcstressPluginExtension)
 
         addJcstressTask(jcstressPluginExtension)
 
-        addCreateScriptsTask(jcstressPluginExtension.includeTests)
+        addCreateScriptsTask(jcstressPluginExtension)
 
         addJcstressToTestScope()
 
@@ -216,15 +216,17 @@ class JcstressPlugin implements Plugin<Project> {
     }
 
 
-    private void addJcstressSourceSet(includeTests) {
+    private void addJcstressSourceSet(extension) {
         project.sourceSets {
             jcstress {
                 compileClasspath += project.configurations.jcstress + project.configurations.compile + (main.output as FileCollection)
                 runtimeClasspath += project.configurations.jcstress + project.configurations.runtime + (main.output as FileCollection)
 
-                if (includeTests) {
-                    compileClasspath += project.configurations.testCompile
-                    runtimeClasspath += project.configurations.testRuntime
+                project.afterEvaluate {
+                    if (extension.includeTests) {
+                        compileClasspath += project.configurations.testCompile
+                        runtimeClasspath += project.configurations.testRuntime
+                    }
                 }
             }
         }
@@ -232,19 +234,19 @@ class JcstressPlugin implements Plugin<Project> {
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
     // @Todo: whitebox-api lib dependency should go into new scripts (win / unix)
-    private void addCreateScriptsTask(boolean includeTests) {
+    private void addCreateScriptsTask(extension) {
         project.tasks.create(TASK_JCSTRESS_SCRIPTS_NAME, CreateStartScripts) {
             description = ["Creates OS specific scripts to run the project as a jcstress test suite."]
             classpath = project.tasks[TASK_JCSTRESS_JAR_NAME].outputs.files + project.configurations.jcstress + project.configurations.runtime
-            conventionMapping.mainClassName = { 'org.openjdk.jcstress.Main' }
-            conventionMapping.applicationName = { jcstressApplicationName }
-            conventionMapping.outputDir = { new File(project.buildDir, 'scripts') }
-            conventionMapping.defaultJvmOpts = {
+            mainClassName = 'org.openjdk.jcstress.Main'
+            applicationName = jcstressApplicationName
+            outputDir = new File(project.buildDir, 'scripts')
+            defaultJvmOpts = {
                 ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', '-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar']
             }
 
-            doFirst {
-                if (includeTests) {
+            project.afterEvaluate {
+                if (extension.includeTests) {
                     classpath += project.configurations.testRuntime
                 }
             }
