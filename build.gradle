@@ -25,6 +25,36 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    integration {
+        groovy {
+            srcDir 'src/integration/groovy'
+        }
+        resources {
+            srcDir 'src/integration/resources'
+        }
+
+        compileClasspath += sourceSets.main.output + sourceSets.test.output + configurations.testCompile + configurations.testRuntime
+        runtimeClasspath += compileClasspath
+    }
+}
+
+configurations {
+    integrationCompile.extendsFrom testCompile
+    integrationRuntime.extendsFrom testRuntime
+}
+
+idea {
+    module {
+        scopes.TEST.plus += [ configurations.integrationCompile ]
+    }
+}
+
+task integrationTest(type: Test) {
+    testClassesDir = sourceSets.integration.output.classesDir
+    classpath = sourceSets.integration.runtimeClasspath
+}
+
 task createClasspathManifest {
     def outputDir = file("$buildDir/$name")
 

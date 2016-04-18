@@ -1,41 +1,65 @@
 package com.github.erizo.gradle
 
-import GradleRunner
-import TaskOutcome
-import Rule
-import TemporaryFolder
-import Ignore
-import Specification
+import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
 
-@Ignore("Move to functional sourceset")
+import java.nio.file.Paths
+
 class JcstressPluginFunctionalSpec extends Specification {
 
     @Rule
     TemporaryFolder testProjectDir = new TemporaryFolder()
 
     def buildFile
+    def settingsFile
     def pluginClasspath
 
     def setup() {
         buildFile = testProjectDir.newFile('build.gradle')
+        settingsFile = testProjectDir.newFile('settings.gradle')
         pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
             new File(it)
         }
+        buildFile << buildFileContents
+        settingsFile << settingsFileContents
     }
 
     def "should create a Linux script"() {
-        given:
-        buildFile << buildFileContents
-
         when:
-        def result = GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
-                .withArguments('jcstressJar', '--stacktrace', '--refresh-dependencies')
-                .withPluginClasspath(pluginClasspath)
-                .build()
+        def result = runGradleTask('jcstressScripts')
 
         then:
-        result.task(":jcstressJar").outcome == TaskOutcome.SUCCESS
+        result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
+
+        def fileText = getFileContents("build", "scripts", "myTestProject-jcstress")
+        fileText.contains("-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar")
+    }
+
+    def "should create a Windows script"() {
+        when:
+        def result = runGradleTask('jcstressScripts')
+
+        then:
+        result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
+
+        def fileText = getFileContents("build", "scripts", "myTestProject-jcstress.bat")
+        fileText.contains("-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar")
+    }
+
+    private BuildResult runGradleTask(String taskName) {
+        GradleRunner.create()
+                .withProjectDir(testProjectDir.root)
+                .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
+                .withPluginClasspath(pluginClasspath)
+                .build()
+    }
+
+    private String getFileContents(String... pathElements) {
+        Paths.get(testProjectDir.root.toString(), pathElements).text
     }
 
     def buildFileContents =
@@ -48,4 +72,6 @@ class JcstressPluginFunctionalSpec extends Specification {
                     jcenter()
                 }
             """
+
+    def settingsFileContents = "rootProject.name = 'myTestProject'"
 }
