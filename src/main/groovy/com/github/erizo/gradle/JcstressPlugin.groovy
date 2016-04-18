@@ -133,7 +133,7 @@ class JcstressPlugin implements Plugin<Project> {
         project.tasks.create(name: TASK_JCSTRESS_JAR_NAME, type: Jar) {
             dependsOn 'jcstressClasses'
             inputs.dir project.sourceSets.jcstress.output
-            doFirst {
+            project.afterEvaluate {
                 from(project.sourceSets.jcstress.output)
                 from(project.sourceSets.main.output, jcstressExclusions)
                 if (extension.includeTests) {
@@ -215,7 +215,6 @@ class JcstressPlugin implements Plugin<Project> {
         installTask
     }
 
-
     private void addJcstressSourceSet(extension) {
         project.sourceSets {
             jcstress {
@@ -241,9 +240,7 @@ class JcstressPlugin implements Plugin<Project> {
             mainClassName = 'org.openjdk.jcstress.Main'
             applicationName = jcstressApplicationName
             outputDir = new File(project.buildDir, 'scripts')
-            defaultJvmOpts = {
-                ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', '-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar']
-            }
+            defaultJvmOpts = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', '-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar']
 
             project.afterEvaluate {
                 if (extension.includeTests) {

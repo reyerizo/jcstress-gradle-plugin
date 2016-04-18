@@ -1,11 +1,11 @@
 package com.github.erizo.gradle
 
-import org.gradle.testkit.runner.GradleRunner
-import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Ignore
-import spock.lang.Specification
+import GradleRunner
+import TaskOutcome
+import Rule
+import TemporaryFolder
+import Ignore
+import Specification
 
 @Ignore("Move to functional sourceset")
 class JcstressPluginFunctionalSpec extends Specification {
