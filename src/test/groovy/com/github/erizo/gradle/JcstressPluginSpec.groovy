@@ -17,6 +17,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
 
 import java.nio.file.Files
+import java.nio.file.Paths
 
 public class JcstressPluginSpec extends Specification {
 
@@ -88,6 +89,22 @@ public class JcstressPluginSpec extends Specification {
 
         then:
         project.tasks['jcstressJar'] instanceof Jar
+    }
+
+    def "should configure include a class from jcstress sourceSet in jcstress jar"() {
+        given:
+        def jcstressDir = Paths.get(project.rootDir.toString(), "build", "classes", "jcstress").toFile()
+        jcstressDir.mkdirs()
+        def jcstressClassFile = Paths.get(jcstressDir.toString(), "jcstress.class").toFile()
+        jcstressClassFile.createNewFile()
+
+        when:
+        plugin.apply(project)
+        project.evaluate()
+
+        then:
+        Jar task = project.tasks['jcstressJar'] as Jar
+        task.source.files.contains(jcstressClassFile)
     }
 
     def "should add jcstressInstall task"() {
@@ -162,7 +179,7 @@ public class JcstressPluginSpec extends Specification {
         def jcstressTask = project.tasks.jcstress
 
         then:
-        jcstressTask.classpath.filter({it.name.contains('spring-core')}).size() == 0
+        jcstressTask.classpath.filter({ it.name.contains('spring-core') }).size() == 0
     }
 
     def "should include tests in jcstress sourceSet classpath if includeTests is true"() {
