@@ -156,7 +156,7 @@ class JcstressPlugin implements Plugin<Project> {
 
             project.afterEvaluate {
                 args = [*args, *extension.buildArgs()]
-                classpath += [project.jcstressJar.archivePath]
+                classpath += project.files(project.jcstressJar.archivePath)
                 jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
                 if (extension.includeTests) {
                     classpath += project.configurations.testRuntime

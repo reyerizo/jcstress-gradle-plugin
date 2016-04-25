@@ -3,9 +3,6 @@ package com.github.erizo.gradle
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.distribution.plugins.DistributionPlugin
-import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
@@ -91,12 +88,9 @@ public class JcstressPluginSpec extends Specification {
         project.tasks['jcstressJar'] instanceof Jar
     }
 
-    def "should configure include a class from jcstress sourceSet in jcstress jar"() {
+    def "should include a class from jcstress sourceSet in jcstress jar"() {
         given:
-        def jcstressDir = Paths.get(project.rootDir.toString(), "build", "classes", "jcstress").toFile()
-        jcstressDir.mkdirs()
-        def jcstressClassFile = Paths.get(jcstressDir.toString(), "jcstress.class").toFile()
-        jcstressClassFile.createNewFile()
+        def jcstressClassFile = createNewFile("build", "classes", "jcstress", "jcstress.class")
 
         when:
         plugin.apply(project)
@@ -105,6 +99,48 @@ public class JcstressPluginSpec extends Specification {
         then:
         Jar task = project.tasks['jcstressJar'] as Jar
         task.source.files.contains(jcstressClassFile)
+    }
+
+    def "should include a resource from jcstress sourceSet in jcstress jar"() {
+        given:
+        def jcstressClassFile = createNewFile("build", "resources", "jcstress", "jcstress.txt")
+
+        when:
+        plugin.apply(project)
+        project.evaluate()
+
+        then:
+        Jar task = project.tasks['jcstressJar'] as Jar
+        task.source.files.contains(jcstressClassFile)
+    }
+
+    def "should include a class from test sourceSet in jcstress jar when test enabled"() {
+        given:
+        def jcstressClassFile = createNewFile("build", "classes", "test", "jcstress.class")
+        plugin.apply(project)
+        project.jcstress {
+            includeTests = true
+        }
+
+        when:
+        project.evaluate()
+
+        then:
+        Jar task = project.tasks['jcstressJar'] as Jar
+        task.source.files.contains(jcstressClassFile)
+    }
+
+    def "should not include a class from test sourceSet in jcstress jar when test disabled"() {
+        given:
+        def jcstressClassFile = createNewFile("build", "classes", "test", "jcstress.class")
+        plugin.apply(project)
+
+        when:
+        project.evaluate()
+
+        then:
+        Jar task = project.tasks['jcstressJar'] as Jar
+        !task.source.files.contains(jcstressClassFile)
     }
 
     def "should add jcstressInstall task"() {
@@ -276,7 +312,61 @@ public class JcstressPluginSpec extends Specification {
         scriptTask.applicationName == 'myjcstressproject-jcstress'
     }
 
-    static DefaultProject createRootProject() {
+    def "should include compile, runtime and jcstress dependencies in script task classpath"() {
+        given:
+        plugin.apply(project)
+
+        project.dependencies {
+            compile 'org.springframework:spring-core:4.0.0.RELEASE'
+            runtime 'org.springframework:spring-webmvc:4.0.0.RELEASE'
+        }
+
+        when:
+        project.evaluate()
+        def classpathFiles = project.tasks.jcstressScripts.classpath.files
+
+        then:
+        classpathFiles.containsAll(project.configurations.runtime.files)
+        classpathFiles.containsAll(project.configurations.compile.files)
+    }
+
+    def "should not include test in script task classpath if includeTests is not set"() {
+        given:
+        plugin.apply(project)
+
+        project.dependencies {
+            testCompile 'org.springframework:spring-test:4.0.0.RELEASE'
+        }
+
+        when:
+        project.evaluate()
+        def classpathFiles = project.tasks.jcstressScripts.classpath.files
+
+        then:
+        !classpathFiles.containsAll(project.configurations.testCompile.files)
+    }
+
+    def "should include test in script task classpath if includeTests is true"() {
+        given:
+        plugin.apply(project)
+
+        project.dependencies {
+            testCompile 'org.springframework:spring-test:4.0.0.RELEASE'
+        }
+
+        project.jcstress {
+            includeTests = true
+        }
+
+        when:
+        project.evaluate()
+        def classpathFiles = project.tasks.jcstressScripts.classpath.files
+
+        then:
+        classpathFiles.containsAll(project.configurations.testCompile.files)
+    }
+
+    static Project createRootProject() {
         return ProjectBuilder
                 .builder()
                 .withProjectDir(Files.createTempDirectory("myjcstressproject").toFile())
@@ -284,12 +374,19 @@ public class JcstressPluginSpec extends Specification {
                 .build()
     }
 
-    private DefaultConfiguration getConfiguration(String configurationName) {
+    private Configuration getConfiguration(String configurationName) {
         return project.configurations[configurationName]
     }
 
-    private static Collection<String> getFileNames(FileCollection fileCollection) {
-        fileCollection.files.collect { it.getName() }
+    private File createNewFile(String... filePath) {
+        def result = Paths.get(project.rootDir.toString(), filePath).toFile()
+        result.parentFile.mkdirs()
+        result.createNewFile()
+        return result
     }
+
+//    private static Collection<String> getFileNames(FileCollection fileCollection) {
+//        fileCollection.files.collect { it.getName() }
+//    }
 
 }
