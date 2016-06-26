@@ -20,6 +20,8 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
@@ -84,10 +86,19 @@ class JcstressPlugin implements Plugin<Project> {
 
     private addJcstressJarDependencies(jcstressPluginExtension) {
         project.dependencies {
-            jcstress "${jcstressPluginExtension.jcstressDependency}"
             jcstress WHITEBOX_API_DEPENDENCY
-            testCompile "${jcstressPluginExtension.jcstressDependency}"
             testCompile WHITEBOX_API_DEPENDENCY
+        }
+
+        addJcstressDependency(project.configurations['jcstress'], jcstressPluginExtension)
+        addJcstressDependency(project.configurations['testCompile'], jcstressPluginExtension)
+    }
+
+    private addJcstressDependency(Configuration jcstressConfiguration, JcstressPluginExtension jcstressPluginExtension) {
+        jcstressConfiguration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
+            DependencyHandler dependencyHandler = project.getDependencies();
+            def dependencies = jcstressConfiguration.getDependencies()
+            dependencies.add(dependencyHandler.create(jcstressPluginExtension.jcstressDependency))
         }
     }
 
@@ -154,7 +165,7 @@ class JcstressPlugin implements Plugin<Project> {
             jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
             classpath = project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime
 
-            project.afterEvaluate {
+            project.afterEvaluate { project ->
                 args = [*args, *extension.buildArgs()]
                 classpath += project.files(project.jcstressJar.archivePath)
                 jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
