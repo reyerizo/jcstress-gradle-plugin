@@ -1,8 +1,8 @@
 package com.github.erizo.gradle
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.distribution.plugins.DistributionPlugin
+import org.gradle.api.internal.project.AbstractProject
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
@@ -18,7 +18,7 @@ import java.nio.file.Paths
 
 public class JcstressPluginSpec extends Specification {
 
-    private final Project project = createRootProject()
+    private final AbstractProject project = createRootProject()
     private final JcstressPlugin plugin = new JcstressPlugin()
 
     def setup() {
@@ -256,10 +256,32 @@ public class JcstressPluginSpec extends Specification {
 
         when:
         plugin.apply(project)
+        project.evaluate()
 
         then:
         getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
         getConfiguration("jcstress").allDependencies.contains(jcstressDependency)
+    }
+
+    def "should override jcstress dependency with gradle configuration"() {
+        given:
+        def whiteboxApiDependency = project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY)
+        def newJcstressDependency = project.dependencies.create('org.springframework:spring-core:4.0.0.RELEASE')
+        def defaultJcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20150729205107')
+
+        when:
+        plugin.apply(project)
+
+        project.jcstress {
+            jcstressDependency = 'org.springframework:spring-core:4.0.0.RELEASE'
+        }
+
+        project.evaluate()
+
+        then:
+        getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
+        getConfiguration("jcstress").allDependencies.contains(newJcstressDependency)
+        !getConfiguration("jcstress").allDependencies.contains(defaultJcstressDependency)
     }
 
     def "should not add jcstress dependencies to compile configuration"() {
@@ -366,12 +388,12 @@ public class JcstressPluginSpec extends Specification {
         classpathFiles.containsAll(project.configurations.testCompile.files)
     }
 
-    static Project createRootProject() {
+    static AbstractProject createRootProject() {
         return ProjectBuilder
                 .builder()
                 .withProjectDir(Files.createTempDirectory("myjcstressproject").toFile())
                 .withName("myjcstressproject")
-                .build()
+                .build() as AbstractProject
     }
 
     private Configuration getConfiguration(String configurationName) {
