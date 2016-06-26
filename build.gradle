@@ -14,6 +14,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'net.researchgate.release'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
+apply plugin: 'idea'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -24,12 +25,57 @@ repositories {
     mavenCentral()
 }
 
+sourceSets {
+    integration {
+        groovy {
+            srcDir 'src/integration/groovy'
+        }
+        resources {
+            srcDir 'src/integration/resources'
+        }
+
+        compileClasspath += sourceSets.main.output + sourceSets.test.output + configurations.testCompile + configurations.testRuntime
+        runtimeClasspath += compileClasspath
+    }
+}
+
+configurations {
+    integrationCompile.extendsFrom testCompile
+    integrationRuntime.extendsFrom testRuntime
+}
+
+idea {
+    module {
+        scopes.TEST.plus += [ configurations.integrationCompile ]
+    }
+}
+
+task integrationTest(type: Test) {
+    testClassesDir = sourceSets.integration.output.classesDir
+    classpath = sourceSets.integration.runtimeClasspath
+}
+
+task createClasspathManifest {
+    def outputDir = file("$buildDir/$name")
+
+    inputs.files sourceSets.main.runtimeClasspath
+    outputs.dir outputDir
+
+    doLast {
+        outputDir.mkdirs()
+        file("$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\n")
+    }
+}
+
 dependencies {
     compile localGroovy()
     compile gradleApi()
+
     testCompile('org.spockframework:spock-core:1.0-groovy-2.4') {
         exclude(module: 'groovy-all')
     }
+    testCompile gradleTestKit()
+    testRuntime files(createClasspathManifest)
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -80,3 +126,17 @@ bintray {
         }
     }
 }
+
+task createPluginClasspath {
+    def outputDir = file("${buildDir}/resources/test")
+
+    inputs.files sourceSets.test.runtimeClasspath
+    outputs.dir outputDir
+
+    doLast {
+        outputDir.mkdirs()
+        file("${outputDir}/plugin-classpath.txt").text = sourceSets.test.runtimeClasspath.join('\n',)
+    }
+}
+
+test.dependsOn(['createPluginClasspath'])
