@@ -18,6 +18,7 @@ import java.nio.file.Paths
 
 public class JcstressPluginSpec extends Specification {
 
+    private final String WHITEBOX_API_DEPENDENCY = "com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0"
     private final AbstractProject project = createRootProject()
     private final JcstressPlugin plugin = new JcstressPlugin()
 
@@ -240,9 +241,24 @@ public class JcstressPluginSpec extends Specification {
         runtimeClasspath.files.containsAll(project.configurations.testCompile.files)
     }
 
-    def "should add whitebox-api to boot classpath"() {
+    def "should not add whitebox-api to boot classpath by default"() {
         when:
         plugin.apply(project)
+        project.evaluate()
+
+        then:
+        project.tasks['jcstress'].jvmArgs.findAll({ it.contains('whitebox') }).size() == 0
+    }
+
+    def "should add whitebox-api to boot classpath when specified"() {
+        given:
+        plugin.apply(project)
+
+        project.jcstress {
+            whiteboxApiDependency = WHITEBOX_API_DEPENDENCY
+        }
+
+        when:
         project.evaluate()
 
         then:
@@ -251,23 +267,39 @@ public class JcstressPluginSpec extends Specification {
 
     def "should add jcstress dependencies to jcstress configuration"() {
         given:
-        def whiteboxApiDependency = project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY)
-        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20150729205107')
+        plugin.apply(project)
+        def whiteboxApiDependency = project.dependencies.create(WHITEBOX_API_DEPENDENCY)
+        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20160519191500')
 
         when:
-        plugin.apply(project)
         project.evaluate()
 
         then:
-        getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
+        !getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
         getConfiguration("jcstress").allDependencies.contains(jcstressDependency)
+    }
+
+    def "should add whitebox dependency when specified"() {
+        given:
+        plugin.apply(project)
+        def customWhiteboxApiDependency = project.dependencies.create(WHITEBOX_API_DEPENDENCY)
+
+        project.jcstress {
+            whiteboxApiDependency = WHITEBOX_API_DEPENDENCY
+        }
+
+        when:
+        project.evaluate()
+
+        then:
+        getConfiguration("jcstress").allDependencies.contains(customWhiteboxApiDependency)
     }
 
     def "should override jcstress dependency with gradle configuration"() {
         given:
-        def whiteboxApiDependency = project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY)
+        def whiteboxApiDependency = project.dependencies.create(WHITEBOX_API_DEPENDENCY)
         def newJcstressDependency = project.dependencies.create('org.springframework:spring-core:4.0.0.RELEASE')
-        def defaultJcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20150729205107')
+        def defaultJcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20160519191500')
 
         when:
         plugin.apply(project)
@@ -279,15 +311,15 @@ public class JcstressPluginSpec extends Specification {
         project.evaluate()
 
         then:
-        getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
+        !getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
         getConfiguration("jcstress").allDependencies.contains(newJcstressDependency)
         !getConfiguration("jcstress").allDependencies.contains(defaultJcstressDependency)
     }
 
     def "should not add jcstress dependencies to compile configuration"() {
         given:
-        def whiteboxApiDependency = project.dependencies.create(JcstressPlugin.WHITEBOX_API_DEPENDENCY)
-        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20150729205107')
+        def whiteboxApiDependency = project.dependencies.create(WHITEBOX_API_DEPENDENCY)
+        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20160519191500')
 
         when:
         plugin.apply(project)
@@ -386,6 +418,12 @@ public class JcstressPluginSpec extends Specification {
 
         then:
         classpathFiles.containsAll(project.configurations.testCompile.files)
+    }
+
+    def "should extract file name from Gradle dependency"() {
+        expect:
+        plugin.getFileNameFromDependency('com.github.erizo.gradle:jcstress-core:1.0-20160519191500') == "jcstress-core-1.0-20160519191500.jar"
+        plugin.getFileNameFromDependency(WHITEBOX_API_DEPENDENCY) == "sun.hotspot.whitebox-api-1.0.jar"
     }
 
     static AbstractProject createRootProject() {

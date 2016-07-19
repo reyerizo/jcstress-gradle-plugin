@@ -71,6 +71,10 @@ class JcstressPluginFunctionalSpec extends Specification {
                 repositories {
                     jcenter()
                 }
+
+                jcstress {
+                    whiteboxApiDependency = 'com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0'
+                }
             """
 
     def settingsFileContents = "rootProject.name = 'myTestProject'"

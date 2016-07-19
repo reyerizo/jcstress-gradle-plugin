@@ -48,7 +48,6 @@ class JcstressPlugin implements Plugin<Project> {
     static final String TASK_JCSTRESS_JAR_NAME = 'jcstressJar'
     static final String TASK_JCSTRESS_INSTALL_NAME = 'jcstressInstall'
     static final String TASK_JCSTRESS_SCRIPTS_NAME = "jcstressScripts"
-    static final String WHITEBOX_API_DEPENDENCY = "com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0"
 
     private Project project
 
@@ -84,11 +83,9 @@ class JcstressPlugin implements Plugin<Project> {
         updateIdeaPluginConfiguration()
     }
 
-    private addJcstressJarDependencies(jcstressPluginExtension) {
-        project.dependencies {
-            jcstress WHITEBOX_API_DEPENDENCY
-            testCompile WHITEBOX_API_DEPENDENCY
-        }
+    private addJcstressJarDependencies(JcstressPluginExtension jcstressPluginExtension) {
+        addWhiteboxApiDependency(project.configurations['jcstress'], jcstressPluginExtension)
+        addWhiteboxApiDependency(project.configurations['testCompile'], jcstressPluginExtension)
 
         addJcstressDependency(project.configurations['jcstress'], jcstressPluginExtension)
         addJcstressDependency(project.configurations['testCompile'], jcstressPluginExtension)
@@ -99,6 +96,16 @@ class JcstressPlugin implements Plugin<Project> {
             DependencyHandler dependencyHandler = project.getDependencies();
             def dependencies = jcstressConfiguration.getDependencies()
             dependencies.add(dependencyHandler.create(jcstressPluginExtension.jcstressDependency))
+        }
+    }
+
+    private addWhiteboxApiDependency(Configuration jcstressConfiguration, JcstressPluginExtension jcstressPluginExtension) {
+        jcstressConfiguration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
+            if (jcstressPluginExtension.whiteboxApiDependency) {
+                DependencyHandler dependencyHandler = project.getDependencies();
+                def dependencies = jcstressConfiguration.getDependencies()
+                dependencies.add(dependencyHandler.create(jcstressPluginExtension.whiteboxApiDependency))
+            }
         }
     }
 
@@ -168,7 +175,10 @@ class JcstressPlugin implements Plugin<Project> {
             project.afterEvaluate { project ->
                 args = [*args, *extension.buildArgs()]
                 classpath += project.files(project.jcstressJar.archivePath)
-                jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
+                filterConfiguration(project.configurations.jcstress, 'whitebox')
+                if (extension.whiteboxApiDependency) {
+                    jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
+                }
                 if (extension.includeTests) {
                     classpath += project.configurations.testRuntime
                 }
@@ -251,18 +261,37 @@ class JcstressPlugin implements Plugin<Project> {
             mainClassName = 'org.openjdk.jcstress.Main'
             applicationName = jcstressApplicationName
             outputDir = new File(project.buildDir, 'scripts')
-            defaultJvmOpts = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', '-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar']
+            defaultJvmOpts = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
 
             project.afterEvaluate {
                 if (extension.includeTests) {
                     classpath += project.configurations.testRuntime
+                }
+                if (extension.whiteboxApiDependency) {
+                    defaultJvmOpts += '-Xbootclasspath/a:../lib/' + getFileNameFromDependency(extension.whiteboxApiDependency)
                 }
             }
         }
     }
 
     private static def getJarFromConfiguration(Configuration configuration, String jarFileName) {
-        configuration.filter({ it.name.contains(jarFileName) }).files.first()
+        filterConfiguration(configuration, jarFileName).first()
     }
+
+    /**
+     * Dummy method, loads configuration dependencies.
+     * @param configuration configuration
+     * @param jarFileName jar file name
+     * @return ignored
+     */
+    private static def filterConfiguration(Configuration configuration, String jarFileName) {
+        configuration.filter({ it.name.contains(jarFileName) }).files
+    }
+
+    static def getFileNameFromDependency(String gradleDependencyName) {
+        def split = gradleDependencyName.split(":")
+        split[1] + "-" + split[2] + ".jar"
+    }
+
 
 }
