@@ -224,8 +224,8 @@ class JcstressPlugin implements Plugin<Project> {
     }
 
     private Sync addInstallAppTask() {
-        Distribution distribution = project.distributions["main"] as Distribution
-        distribution.conventionMapping.baseName = { jcstressApplicationName }
+        Distribution distribution = project.distributions.create("jcstress") as Distribution
+        distribution.baseName = jcstressApplicationName
         configureDistSpec(distribution.contents)
 
         def installTask = project.tasks.create(TASK_JCSTRESS_INSTALL_NAME, Sync)
