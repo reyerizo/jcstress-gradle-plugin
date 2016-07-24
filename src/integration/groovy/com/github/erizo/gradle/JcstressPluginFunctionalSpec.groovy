@@ -36,7 +36,7 @@ class JcstressPluginFunctionalSpec extends Specification {
         result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
 
         def fileText = getFileContents("build", "scripts", "myTestProject-jcstress")
-        fileText.contains("-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar")
+        fileText.contains("sun.hotspot.whitebox-api-1.0-20160519191500-1.jar")
     }
 
     def "should create a Windows script"() {
@@ -47,7 +47,7 @@ class JcstressPluginFunctionalSpec extends Specification {
         result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
 
         def fileText = getFileContents("build", "scripts", "myTestProject-jcstress.bat")
-        fileText.contains("-Xbootclasspath/a:../lib/sun.hotspot.whitebox-api-1.0.jar")
+        fileText.contains("sun.hotspot.whitebox-api-1.0-20160519191500-1.jar")
     }
 
     private BuildResult runGradleTask(String taskName) {

@@ -10,7 +10,7 @@ import spock.lang.Specification
 
 import java.nio.file.Paths
 
-class JcstressPluginOneTestSpec extends Specification {
+class JcstressPluginUnforkedTestSpec extends Specification {
 
     @Rule
     TemporaryFolder testProjectDir = new TemporaryFolder()
@@ -25,7 +25,7 @@ class JcstressPluginOneTestSpec extends Specification {
 
     def "should complete a simple run"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application").toURI()).toFile()
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)
 
         when:

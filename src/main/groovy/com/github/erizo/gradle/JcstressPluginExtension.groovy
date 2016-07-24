@@ -8,9 +8,9 @@ import org.gradle.api.Project
 class JcstressPluginExtension {
     def Project project
 
-    def jcstressDependency = 'com.github.erizo.gradle:jcstress-core:1.0-20160519191500'
+    def jcstressDependency = 'com.github.erizo.gradle:jcstress-core:1.0-20160519191500-1'
 
-    def whiteboxApiDependency = null
+    def whiteboxApiDependency = 'com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0-20160519191500-1'
 
     def includeTests = false
 

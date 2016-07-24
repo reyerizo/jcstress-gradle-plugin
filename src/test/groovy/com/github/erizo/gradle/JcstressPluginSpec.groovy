@@ -11,6 +11,7 @@ import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -18,7 +19,7 @@ import java.nio.file.Paths
 
 public class JcstressPluginSpec extends Specification {
 
-    private final String WHITEBOX_API_DEPENDENCY = "com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0"
+    private final String WHITEBOX_API_DEPENDENCY = "com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0-20160519191500-1"
     private final AbstractProject project = createRootProject()
     private final JcstressPlugin plugin = new JcstressPlugin()
 
@@ -241,6 +242,7 @@ public class JcstressPluginSpec extends Specification {
         runtimeClasspath.files.containsAll(project.configurations.testCompile.files)
     }
 
+    @Ignore
     def "should not add whitebox-api to boot classpath by default"() {
         when:
         plugin.apply(project)
@@ -250,7 +252,8 @@ public class JcstressPluginSpec extends Specification {
         project.tasks['jcstress'].jvmArgs.findAll({ it.contains('whitebox') }).size() == 0
     }
 
-    def "should add whitebox-api to boot classpath when specified"() {
+    @Ignore
+    def "should not add whitebox-api to boot classpath when specified"() {
         given:
         plugin.apply(project)
 
@@ -262,20 +265,20 @@ public class JcstressPluginSpec extends Specification {
         project.evaluate()
 
         then:
-        project.tasks['jcstress'].jvmArgs.findAll({ it.contains('whitebox') }).size() == 1
+        project.tasks['jcstress'].jvmArgs.findAll({ it.contains('whitebox') }).size() == 0
     }
 
     def "should add jcstress dependencies to jcstress configuration"() {
         given:
         plugin.apply(project)
         def whiteboxApiDependency = project.dependencies.create(WHITEBOX_API_DEPENDENCY)
-        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20160519191500')
+        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20160519191500-1')
 
         when:
         project.evaluate()
 
         then:
-        !getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
+        getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
         getConfiguration("jcstress").allDependencies.contains(jcstressDependency)
     }
 
@@ -299,7 +302,7 @@ public class JcstressPluginSpec extends Specification {
         given:
         def whiteboxApiDependency = project.dependencies.create(WHITEBOX_API_DEPENDENCY)
         def newJcstressDependency = project.dependencies.create('org.springframework:spring-core:4.0.0.RELEASE')
-        def defaultJcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20160519191500')
+        def defaultJcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20160519191500-1')
 
         when:
         plugin.apply(project)
@@ -311,7 +314,7 @@ public class JcstressPluginSpec extends Specification {
         project.evaluate()
 
         then:
-        !getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
+        getConfiguration("jcstress").allDependencies.contains(whiteboxApiDependency)
         getConfiguration("jcstress").allDependencies.contains(newJcstressDependency)
         !getConfiguration("jcstress").allDependencies.contains(defaultJcstressDependency)
     }
@@ -423,7 +426,7 @@ public class JcstressPluginSpec extends Specification {
     def "should extract file name from Gradle dependency"() {
         expect:
         plugin.getFileNameFromDependency('com.github.erizo.gradle:jcstress-core:1.0-20160519191500') == "jcstress-core-1.0-20160519191500.jar"
-        plugin.getFileNameFromDependency(WHITEBOX_API_DEPENDENCY) == "sun.hotspot.whitebox-api-1.0.jar"
+        plugin.getFileNameFromDependency("com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0") == "sun.hotspot.whitebox-api-1.0.jar"
     }
 
     static AbstractProject createRootProject() {
