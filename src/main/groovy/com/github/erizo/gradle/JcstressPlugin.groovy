@@ -177,7 +177,7 @@ class JcstressPlugin implements Plugin<Project> {
                 classpath += project.files(project.jcstressJar.archivePath)
                 filterConfiguration(project.configurations.jcstress, 'whitebox')
                 if (extension.whiteboxApiDependency) {
-                    jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
+//                    jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
                 }
                 if (extension.includeTests) {
                     classpath += project.configurations.testRuntime
@@ -268,7 +268,7 @@ class JcstressPlugin implements Plugin<Project> {
                     classpath += project.configurations.testRuntime
                 }
                 if (extension.whiteboxApiDependency) {
-                    defaultJvmOpts += '-Xbootclasspath/a:../lib/' + getFileNameFromDependency(extension.whiteboxApiDependency)
+//                    defaultJvmOpts += '-Xbootclasspath/a:../lib/' + getFileNameFromDependency(extension.whiteboxApiDependency)
                 }
             }
         }

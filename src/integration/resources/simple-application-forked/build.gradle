@@ -22,6 +22,5 @@ task wrapper(type: Wrapper) {
 jcstress {
     verbose = true
     timeMillis = "200"
-    forks = -1
     iterations = 1
 }
