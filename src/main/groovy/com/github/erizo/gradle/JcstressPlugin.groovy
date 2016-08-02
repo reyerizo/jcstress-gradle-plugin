@@ -34,6 +34,8 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.testing.Test
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
+import java.nio.file.Paths
+
 /**
  * Configures the Jcstress Plugin.
  *
@@ -173,6 +175,9 @@ class JcstressPlugin implements Plugin<Project> {
             classpath = project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime
 
             project.afterEvaluate { project ->
+                if (!extension.reportDir) {
+                    extension.reportDir = getAndCreateDirectory(project.buildDir, "reports", "jcstress")
+                }
                 args = [*args, *extension.buildArgs()]
                 classpath += project.files(project.jcstressJar.archivePath)
                 filterConfiguration(project.configurations.jcstress, 'whitebox')
@@ -182,8 +187,16 @@ class JcstressPlugin implements Plugin<Project> {
                 if (extension.includeTests) {
                     classpath += project.configurations.testRuntime
                 }
+                File path = getAndCreateDirectory(project.buildDir, "tmp", "jcstress")
+                workingDir = path
             }
         }
+    }
+
+    private File getAndCreateDirectory(File dir, String... subdirectory) {
+        def path = Paths.get(dir.path, subdirectory).toFile()
+        path.mkdirs()
+        path
     }
 
     void configureInstallTasks(Sync installTask) {
