@@ -19,7 +19,8 @@ import java.nio.file.Paths
 
 public class JcstressPluginSpec extends Specification {
 
-    private final String WHITEBOX_API_DEPENDENCY = "com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0-20160519191500-1"
+    private
+    final String WHITEBOX_API_DEPENDENCY = "com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0-20160519191500-1"
     private final AbstractProject project = createRootProject()
     private final JcstressPlugin plugin = new JcstressPlugin()
 
@@ -266,6 +267,47 @@ public class JcstressPluginSpec extends Specification {
 
         then:
         project.tasks['jcstress'].jvmArgs.findAll({ it.contains('whitebox') }).size() == 0
+    }
+
+    def "should put jcstress results to temp dir"() {
+        given:
+        plugin.apply(project)
+
+        when:
+        project.evaluate()
+
+        then:
+        project.tasks['jcstress'].workingDir.toPath() == Paths.get(project.buildDir.path, "tmp", "jcstress")
+    }
+
+    def "should set report dir to build when not defined"() {
+        given:
+        plugin.apply(project)
+
+        when:
+        project.evaluate()
+        def jcstressTask = project.tasks['jcstress'] as JavaExec
+
+        then:
+        def reportDirSwitchIndex = jcstressTask.args.indexOf("-r")
+        Paths.get(jcstressTask.args[reportDirSwitchIndex + 1]).endsWith("build/reports/jcstress")
+    }
+
+    def "should not set report dir to build when already defined"() {
+        given:
+        plugin.apply(project)
+
+        project.jcstress {
+            reportDir = "my/report/dir"
+        }
+
+        when:
+        project.evaluate()
+        def jcstressTask = project.tasks['jcstress'] as JavaExec
+
+        then:
+        def reportDirSwitchIndex = jcstressTask.args.indexOf("-r")
+        Paths.get(jcstressTask.args[reportDirSwitchIndex + 1]).endsWith("my/report/dir")
     }
 
     def "should add jcstress dependencies to jcstress configuration"() {
