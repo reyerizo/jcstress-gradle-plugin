@@ -2,7 +2,7 @@ package com.github.erizo.gradle
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.distribution.plugins.DistributionPlugin
-import org.gradle.api.internal.project.AbstractProject
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.JavaExec
@@ -21,7 +21,7 @@ public class JcstressPluginSpec extends Specification {
 
     private
     final String WHITEBOX_API_DEPENDENCY = "com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0-20160519191500-1"
-    private final AbstractProject project = createRootProject()
+    private final DefaultProject project = createRootProject()
     private final JcstressPlugin plugin = new JcstressPlugin()
 
     def setup() {
@@ -471,12 +471,12 @@ public class JcstressPluginSpec extends Specification {
         plugin.getFileNameFromDependency("com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0") == "sun.hotspot.whitebox-api-1.0.jar"
     }
 
-    static AbstractProject createRootProject() {
+    static DefaultProject createRootProject() {
         return ProjectBuilder
                 .builder()
                 .withProjectDir(Files.createTempDirectory("myjcstressproject").toFile())
                 .withName("myjcstressproject")
-                .build() as AbstractProject
+                .build() as DefaultProject
     }
 
     private Configuration getConfiguration(String configurationName) {

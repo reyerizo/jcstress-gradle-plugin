@@ -20,7 +20,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.plugins.DistributionPlugin
@@ -86,29 +85,19 @@ class JcstressPlugin implements Plugin<Project> {
     }
 
     private addJcstressJarDependencies(JcstressPluginExtension jcstressPluginExtension) {
-        addWhiteboxApiDependency(project.configurations['jcstress'], jcstressPluginExtension)
-        addWhiteboxApiDependency(project.configurations['testCompile'], jcstressPluginExtension)
-
-        addJcstressDependency(project.configurations['jcstress'], jcstressPluginExtension)
-        addJcstressDependency(project.configurations['testCompile'], jcstressPluginExtension)
-    }
-
-    private addJcstressDependency(Configuration jcstressConfiguration, JcstressPluginExtension jcstressPluginExtension) {
-        jcstressConfiguration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
-            DependencyHandler dependencyHandler = project.getDependencies();
-            def dependencies = jcstressConfiguration.getDependencies()
-            dependencies.add(dependencyHandler.create(jcstressPluginExtension.jcstressDependency))
-        }
-    }
-
-    private addWhiteboxApiDependency(Configuration jcstressConfiguration, JcstressPluginExtension jcstressPluginExtension) {
-        jcstressConfiguration.incoming.beforeResolve { ResolvableDependencies resolvableDependencies ->
+        project.afterEvaluate {
             if (jcstressPluginExtension.whiteboxApiDependency) {
-                DependencyHandler dependencyHandler = project.getDependencies();
-                def dependencies = jcstressConfiguration.getDependencies()
-                dependencies.add(dependencyHandler.create(jcstressPluginExtension.whiteboxApiDependency))
+                addDependency(project.configurations['jcstress'], jcstressPluginExtension.whiteboxApiDependency)
+                addDependency(project.configurations['testCompile'], jcstressPluginExtension.whiteboxApiDependency)
             }
+            addDependency(project.configurations['jcstress'], jcstressPluginExtension.jcstressDependency)
+            addDependency(project.configurations['testCompile'], jcstressPluginExtension.jcstressDependency)
         }
+    }
+
+    private addDependency(Configuration configuration, String dependency) {
+            DependencyHandler dependencyHandler = project.getDependencies();
+            configuration.getDependencies().add(dependencyHandler.create(dependency))
     }
 
     private Configuration addJcstressConfiguration() {
