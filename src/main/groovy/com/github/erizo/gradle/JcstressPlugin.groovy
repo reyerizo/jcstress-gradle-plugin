@@ -30,7 +30,6 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Jar
-import org.gradle.api.tasks.testing.Test
 import org.gradle.plugins.ide.idea.IdeaPlugin
 
 import java.nio.file.Paths
@@ -75,8 +74,6 @@ class JcstressPlugin implements Plugin<Project> {
 
         addCreateScriptsTask(jcstressPluginExtension)
 
-        addJcstressToTestScope()
-
         Sync installAppTask = addInstallAppTask()
 
         configureInstallTasks(installAppTask)
@@ -96,8 +93,8 @@ class JcstressPlugin implements Plugin<Project> {
     }
 
     private addDependency(Configuration configuration, String dependency) {
-            DependencyHandler dependencyHandler = project.getDependencies();
-            configuration.getDependencies().add(dependencyHandler.create(dependency))
+        DependencyHandler dependencyHandler = project.getDependencies();
+        configuration.getDependencies().add(dependencyHandler.create(dependency))
     }
 
     private Configuration addJcstressConfiguration() {
@@ -121,15 +118,6 @@ class JcstressPlugin implements Plugin<Project> {
                     }
                 }
             }
-        }
-    }
-
-    private Task addJcstressToTestScope() {
-        /** Intellij scope hack */
-        project.tasks.create(name: 'addJcstressToTestScope', type: Test) {
-            description = ['Adds jcstress to IDE test scope.']
-            testClassesDir = project.sourceSets.jcstress.output.classesDir
-            classpath = project.sourceSets.jcstress.runtimeClasspath
         }
     }
 
@@ -246,8 +234,8 @@ class JcstressPlugin implements Plugin<Project> {
 
                 project.afterEvaluate {
                     if (extension.includeTests) {
-                        compileClasspath += project.configurations.testCompile
-                        runtimeClasspath += project.configurations.testRuntime
+                        compileClasspath += project.configurations.testCompile + (test.output as FileCollection)
+                        runtimeClasspath += project.configurations.testRuntime + (test.output as FileCollection)
                     }
                 }
             }
