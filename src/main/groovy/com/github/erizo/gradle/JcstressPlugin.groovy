@@ -143,31 +143,37 @@ class JcstressPlugin implements Plugin<Project> {
     }
 
     private Task addJcstressTask(JcstressPluginExtension extension) {
-        project.tasks.create(name: TASK_JCSTRESS_NAME, type: JavaExec) {
-            dependsOn project.jcstressJar
-            main = 'org.openjdk.jcstress.Main'
-            group = ['Verification']
-            description = ['Runs jcstress benchmarks.']
-            jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
-            classpath = project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime
+        def task = project.tasks.create(name: TASK_JCSTRESS_NAME, type: JcstressTask) as JcstressTask
 
-            project.afterEvaluate { project ->
-                if (!extension.reportDir) {
-                    extension.reportDir = getAndCreateDirectory(project.buildDir, "reports", "jcstress")
-                }
-                args = [*args, *extension.buildArgs()]
-                classpath += project.files(project.jcstressJar.archivePath)
-                filterConfiguration(project.configurations.jcstress, 'whitebox')
-                if (extension.whiteboxApiDependency) {
-//                    jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
-                }
-                if (extension.includeTests) {
-                    classpath += project.configurations.testRuntime
-                }
-                File path = getAndCreateDirectory(project.buildDir, "tmp", "jcstress")
-                workingDir = path
+        task.dependsOn project.jcstressJar
+        task.main = 'org.openjdk.jcstress.Main'
+        task.group = ['Verification']
+        task.description = ['Runs jcstress benchmarks.']
+        task.jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
+        task.classpath = project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime
+
+        project.afterEvaluate { project ->
+            if (!extension.reportDir) {
+                extension.reportDir = getAndCreateDirectory(project.buildDir, "reports", "jcstress")
             }
+            task.args = [*task.args, *extension.buildArgs()]
+            task.classpath += project.files(project.jcstressJar.archivePath)
+            filterConfiguration(project.configurations.jcstress, 'whitebox')
+            if (extension.whiteboxApiDependency) {
+//                    jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
+            }
+            if (extension.includeTests) {
+                task.classpath += project.configurations.testRuntime
+            }
+            File path = getAndCreateDirectory(project.buildDir, "tmp", "jcstress")
+            task.workingDir = path
         }
+
+
+        task.doFirst {
+            args = [*args, *task.jcstressArgs()]
+        }
+
     }
 
     private File getAndCreateDirectory(File dir, String... subdirectory) {

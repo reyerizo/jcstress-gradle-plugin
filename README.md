@@ -14,7 +14,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.7.3'
+        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.7.5'
     }
 }
 
@@ -32,6 +32,14 @@ Execute your tests with the following:
 ```
 gradle jcstress
 ```
+
+or a subset of your tests:
+
+```
+gradle jcstress --tests "MyFirstTest|MySecondTest"
+```
+
+The latter is an equivalent of `regexp` option below.
 
 ### Configuration
 
