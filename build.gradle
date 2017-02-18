@@ -1,6 +1,7 @@
 buildscript {
     repositories {
         jcenter()
+        mavenLocal()
     }
     dependencies {
         classpath 'net.researchgate:gradle-release:2.1.2'
@@ -23,6 +24,8 @@ compileGroovy.options.encoding = 'UTF-8'
 
 repositories {
     mavenCentral()
+    mavenLocal()
+
 }
 
 sourceSets {

@@ -80,15 +80,13 @@ src/jcstress/java       // java sources
 src/jcstress/resources  // resources
 ```
 
-By default, the plugin uses a snapshot build of `jcstress` library. This can be easily overridden with another custom build:
+By default, the plugin uses `jcstress-core-0.2`. This can be easily overridden with the following:
 
 ```groovy
 jcstress {
-    jcstressDependency 'org.openjdk.jcstress:jcstress-core:1.0-SNAPSHOT'
+    jcstressDependency 'org.openjdk.jcstress:jcstress-core:0.3'
 }
 ```
-
-Once `jcstress` is available from Maven Central or JCenter, this plugin will switch to the official build.
 
 ### Notes
 
