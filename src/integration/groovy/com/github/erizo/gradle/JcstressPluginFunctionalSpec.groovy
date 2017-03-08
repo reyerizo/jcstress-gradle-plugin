@@ -36,7 +36,7 @@ class JcstressPluginFunctionalSpec extends Specification {
         result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
 
         def fileText = getFileContents("build", "scripts", "myTestProject-jcstress")
-        fileText.contains("sun.hotspot.whitebox-api-1.0-20160519191500-1.jar")
+        fileText.contains("jcstress-core-0.2.jar")
     }
 
     def "should create a Windows script"() {
@@ -47,7 +47,7 @@ class JcstressPluginFunctionalSpec extends Specification {
         result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
 
         def fileText = getFileContents("build", "scripts", "myTestProject-jcstress.bat")
-        fileText.contains("sun.hotspot.whitebox-api-1.0-20160519191500-1.jar")
+        fileText.contains("jcstress-core-0.2.jar")
     }
 
     private BuildResult runGradleTask(String taskName) {
@@ -70,10 +70,10 @@ class JcstressPluginFunctionalSpec extends Specification {
 
                 repositories {
                     jcenter()
+                    mavenLocal()
                 }
 
                 jcstress {
-                    whiteboxApiDependency = 'com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0'
                 }
             """
 

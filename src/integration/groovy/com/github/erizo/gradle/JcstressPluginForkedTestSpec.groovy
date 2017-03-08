@@ -13,7 +13,7 @@ import java.nio.file.Paths
 class JcstressPluginForkedTestSpec extends Specification {
 
     @Rule
-    TemporaryFolder testProjectDir = new TemporaryFolder()
+    MyTemporaryFolder testProjectDir = new MyTemporaryFolder()
 
     def pluginClasspath
 
@@ -23,7 +23,7 @@ class JcstressPluginForkedTestSpec extends Specification {
         }
     }
 
-    def "should complete a simple run"() {
+    def "should complete a forked run"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-forked").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)

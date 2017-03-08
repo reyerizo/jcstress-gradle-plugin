@@ -6,11 +6,9 @@ import org.gradle.api.Project
  * @author jerzykrlk
  */
 class JcstressPluginExtension {
-    def Project project
+    def project
 
-    def jcstressDependency = 'com.github.erizo.gradle:jcstress-core:1.0-20160519191500-1'
-
-    def whiteboxApiDependency = 'com.github.erizo.gradle:sun.hotspot.whitebox-api:1.0-20160519191500-1'
+    def jcstressDependency = 'org.openjdk.jcstress:jcstress-core:0.2'
 
     def includeTests = false
 
@@ -18,7 +16,7 @@ class JcstressPluginExtension {
     def jvmArgs, mode, maxStride, minStride, reportDir
     def cpuCount, regexp, timeMillis, verbose, yield
 
-    public JcstressPluginExtension(final Project project) {
+    JcstressPluginExtension(final Project project) {
         this.project = project
     }
 
@@ -41,7 +39,7 @@ class JcstressPluginExtension {
         result
     }
 
-    static def addParameter(result, param, value) {
+    static addParameter(result, param, value) {
         if (param == '-v' && value == true) {
             result << param
         } else if (value != null) {

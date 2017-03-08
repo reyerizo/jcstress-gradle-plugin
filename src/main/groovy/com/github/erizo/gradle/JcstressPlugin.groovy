@@ -26,7 +26,6 @@ import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Jar
@@ -83,17 +82,13 @@ class JcstressPlugin implements Plugin<Project> {
 
     private addJcstressJarDependencies(JcstressPluginExtension jcstressPluginExtension) {
         project.afterEvaluate {
-            if (jcstressPluginExtension.whiteboxApiDependency) {
-                addDependency(project.configurations['jcstress'], jcstressPluginExtension.whiteboxApiDependency)
-                addDependency(project.configurations['testCompile'], jcstressPluginExtension.whiteboxApiDependency)
-            }
             addDependency(project.configurations['jcstress'], jcstressPluginExtension.jcstressDependency)
             addDependency(project.configurations['testCompile'], jcstressPluginExtension.jcstressDependency)
         }
     }
 
     private addDependency(Configuration configuration, String dependency) {
-        DependencyHandler dependencyHandler = project.getDependencies();
+        DependencyHandler dependencyHandler = project.getDependencies()
         configuration.getDependencies().add(dependencyHandler.create(dependency))
     }
 
@@ -147,10 +142,13 @@ class JcstressPlugin implements Plugin<Project> {
 
         task.dependsOn project.jcstressJar
         task.main = 'org.openjdk.jcstress.Main'
-        task.group = ['Verification']
-        task.description = ['Runs jcstress benchmarks.']
+        task.group = 'Verification'
+        task.description = 'Runs jcstress benchmarks.'
         task.jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
         task.classpath = project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime
+        task.doFirst {
+            getAndCreateDirectory(project.buildDir, "tmp", "jcstress")
+        }
 
         project.afterEvaluate { project ->
             if (!extension.reportDir) {
@@ -158,10 +156,7 @@ class JcstressPlugin implements Plugin<Project> {
             }
             task.args = [*task.args, *extension.buildArgs()]
             task.classpath += project.files(project.jcstressJar.archivePath)
-            filterConfiguration(project.configurations.jcstress, 'whitebox')
-            if (extension.whiteboxApiDependency) {
-//                    jvmArgs += '-Xbootclasspath/a:' + getJarFromConfiguration(project.configurations.jcstress, 'whitebox')
-            }
+            filterConfiguration(project.configurations.jcstress, 'jcstress-core')
             if (extension.includeTests) {
                 task.classpath += project.configurations.testRuntime
             }
@@ -176,7 +171,7 @@ class JcstressPlugin implements Plugin<Project> {
 
     }
 
-    private File getAndCreateDirectory(File dir, String... subdirectory) {
+    private static File getAndCreateDirectory(File dir, String... subdirectory) {
         def path = Paths.get(dir.path, subdirectory).toFile()
         path.mkdirs()
         path
@@ -249,7 +244,6 @@ class JcstressPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
-    // @Todo: whitebox-api lib dependency should go into new scripts (win / unix)
     private void addCreateScriptsTask(extension) {
         project.tasks.create(TASK_JCSTRESS_SCRIPTS_NAME, CreateStartScripts) {
             description = ["Creates OS specific scripts to run the project as a jcstress test suite."]
@@ -263,15 +257,8 @@ class JcstressPlugin implements Plugin<Project> {
                 if (extension.includeTests) {
                     classpath += project.configurations.testRuntime
                 }
-                if (extension.whiteboxApiDependency) {
-//                    defaultJvmOpts += '-Xbootclasspath/a:../lib/' + getFileNameFromDependency(extension.whiteboxApiDependency)
-                }
             }
         }
-    }
-
-    private static def getJarFromConfiguration(Configuration configuration, String jarFileName) {
-        filterConfiguration(configuration, jarFileName).first()
     }
 
     /**
@@ -280,11 +267,11 @@ class JcstressPlugin implements Plugin<Project> {
      * @param jarFileName jar file name
      * @return ignored
      */
-    private static def filterConfiguration(Configuration configuration, String jarFileName) {
+    private static filterConfiguration(Configuration configuration, String jarFileName) {
         configuration.filter({ it.name.contains(jarFileName) }).files
     }
 
-    static def getFileNameFromDependency(String gradleDependencyName) {
+    static getFileNameFromDependency(String gradleDependencyName) {
         def split = gradleDependencyName.split(":")
         split[1] + "-" + split[2] + ".jar"
     }

@@ -23,7 +23,7 @@ class JcstressPluginUnforkedTestSpec extends Specification {
         }
     }
 
-    def "should complete a simple run"() {
+    def "should complete an unforked run"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)
