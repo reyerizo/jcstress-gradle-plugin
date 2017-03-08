@@ -14,7 +14,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.7.5'
+        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.8.0'
     }
 }
 
@@ -84,7 +84,7 @@ By default, the plugin uses `jcstress-core-0.2`. This can be easily overridden w
 
 ```groovy
 jcstress {
-    jcstressDependency 'org.openjdk.jcstress:jcstress-core:0.3'
+    jcstressDependency 'org.openjdk.jcstress:jcstress-core:0.2.x'
 }
 ```
 
