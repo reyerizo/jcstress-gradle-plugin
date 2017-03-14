@@ -49,7 +49,7 @@ configurations {
 
 idea {
     module {
-        scopes.TEST.plus += [ configurations.integrationCompile ]
+        scopes.TEST.plus += [configurations.integrationCompile]
     }
 }
 
@@ -104,8 +104,8 @@ publishing {
 afterReleaseBuild.dependsOn bintrayUpload
 
 bintray {
-    user = bintray_user
-    key = bintray_api_key
+    user = hasProperty('bintray_user') ? property('bintray_user') : ""
+    key = hasProperty('bintray_api_key') ? property('bintray_api_key') : ""
     publications = ['mavenJava']
     dryRun = false
     publish = true
@@ -145,3 +145,4 @@ task createPluginClasspath {
 }
 
 test.dependsOn(['createPluginClasspath'])
+
