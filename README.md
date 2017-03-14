@@ -1,4 +1,7 @@
 # Jcstress Gradle Plugin
+
+[![Build Status](https://travis-ci.org/jerzykrlk/jcstress-gradle-plugin.svg?branch=master)](https://travis-ci.org/jerzykrlk/jcstress-gradle-plugin)
+
 This plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.net/projects/code-tools/jcstress) with Gradle.
 
 ### Usage
