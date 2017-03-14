@@ -2,7 +2,8 @@
 
 <nobr>[![Build Status](https://travis-ci.org/jerzykrlk/jcstress-gradle-plugin.svg?branch=master)](https://travis-ci.org/jerzykrlk/jcstress-gradle-plugin)
 [![Coverage Status](https://coveralls.io/repos/github/jerzykrlk/jcstress-gradle-plugin/badge.svg?branch=master)](https://coveralls.io/github/jerzykrlk/jcstress-gradle-plugin?branch=master)
-[![Download](https://api.bintray.com/packages/jerzykrlk/maven/jcstress-gradle-plugin/images/download.svg) ](https://bintray.com/jerzykrlk/maven/jcstress-gradle-plugin/_latestVersion)</nobr>
+[![Download](https://api.bintray.com/packages/jerzykrlk/maven/jcstress-gradle-plugin/images/download.svg) ](https://bintray.com/jerzykrlk/maven/jcstress-gradle-plugin/_latestVersion)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)</nobr>
 
 This plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.net/projects/code-tools/jcstress) with Gradle.
 
