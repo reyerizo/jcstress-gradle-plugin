@@ -2,10 +2,14 @@ buildscript {
     repositories {
         jcenter()
         mavenLocal()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
     dependencies {
         classpath 'net.researchgate:gradle-release:2.1.2'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
     }
 }
 
@@ -21,6 +25,7 @@ apply plugin: 'net.researchgate.release'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
+apply plugin: "com.gradle.plugin-publish"
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -30,7 +35,7 @@ compileGroovy.options.encoding = 'UTF-8'
 repositories {
     mavenCentral()
     mavenLocal()
-
+    jcenter()
 }
 
 sourceSets {
@@ -133,6 +138,20 @@ bintray {
                 password = 'paasword'
                 close = '1'
             }
+        }
+    }
+}
+
+pluginBundle {
+    website = 'https://github.com/jerzykrlk/jcstress-gradle-plugin'
+    vcsUrl = 'https://github.com/jerzykrlk/jcstress-gradle-plugin'
+    description = 'Jcstress gradle plugin'
+    tags = ['jcstress', 'gradle']
+
+    plugins {
+        jcstressGradlePlugin {
+            id = 'com.github.erizo.gradle.jcstress'
+            displayName = 'Jcstress gradle plugin'
         }
     }
 }
