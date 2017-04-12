@@ -162,6 +162,16 @@ class JcstressPluginSpec extends Specification {
         jcstressTask.jvmArgs.containsAll(['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended'])
     }
 
+    def "should add default language set to English"() {
+        when:
+        plugin.apply(project)
+        project.evaluate()
+        def jcstressTask = project.tasks['jcstress']
+
+        then:
+        jcstressTask.allJvmArgs.contains('-Duser.language=en')
+    }
+
     def "should add jcstress configuration arguments to jsctress task"() {
         given:
         plugin.apply(project)
@@ -177,6 +187,23 @@ class JcstressPluginSpec extends Specification {
 
         then:
         jcstressTask.args.containsAll(['asdf', '-f', '30', '-time', '200'])
+    }
+
+    def "should change default language to French"() {
+        given:
+        plugin.apply(project)
+        project.jcstress {
+            timeMillis = "200"
+            forks = 30
+            language = 'fr'
+        }
+
+        when:
+        project.evaluate()
+        def jcstressTask = project.tasks['jcstress']
+
+        then:
+        jcstressTask.allJvmArgs.contains('-Duser.language=en')
     }
 
     def "should include tests in jcstress tasks if includeTests is true"() {
@@ -285,7 +312,7 @@ class JcstressPluginSpec extends Specification {
     def "should add jcstress dependencies to jcstress configuration"() {
         given:
         plugin.apply(project)
-        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.2')
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.3')
 
         when:
         project.evaluate()
