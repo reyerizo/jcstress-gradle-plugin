@@ -144,7 +144,7 @@ class JcstressPlugin implements Plugin<Project> {
         task.main = 'org.openjdk.jcstress.Main'
         task.group = 'Verification'
         task.description = 'Runs jcstress benchmarks.'
-        task.jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
+        task.jvmArgs = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', "-Duser.language=${extension.language}"]
         task.classpath = project.configurations.jcstress + project.configurations.jcstressRuntime + project.configurations.runtime
         task.doFirst {
             getAndCreateDirectory(project.buildDir, "tmp", "jcstress")
@@ -251,7 +251,7 @@ class JcstressPlugin implements Plugin<Project> {
             mainClassName = 'org.openjdk.jcstress.Main'
             applicationName = jcstressApplicationName
             outputDir = new File(project.buildDir, 'scripts')
-            defaultJvmOpts = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended']
+            defaultJvmOpts = ['-XX:+UnlockDiagnosticVMOptions', '-XX:+WhiteBoxAPI', '-XX:-RestrictContended', "-Duser.language=${extension.language}"]
 
             project.afterEvaluate {
                 if (extension.includeTests) {

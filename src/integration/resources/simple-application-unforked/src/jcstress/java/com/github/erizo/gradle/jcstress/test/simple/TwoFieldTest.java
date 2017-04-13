@@ -1,7 +1,7 @@
 package pl.erizo.gradle.jcstress.reordering;
 
 import org.openjdk.jcstress.annotations.*;
-import org.openjdk.jcstress.infra.results.LongResult2;
+import org.openjdk.jcstress.infra.results.LL_Result;
 
 import static org.openjdk.jcstress.annotations.Expect.ACCEPTABLE;
 import static org.openjdk.jcstress.annotations.Expect.ACCEPTABLE_INTERESTING;
@@ -26,7 +26,7 @@ public class TwoFieldTest {
     }
 
     @Actor
-    public void actor2(LongResult2 longResult) {
+    public void actor2(LL_Result longResult) {
         longResult.r1 = twoFieldClass.x;
         longResult.r2 = twoFieldClass.y;
     }

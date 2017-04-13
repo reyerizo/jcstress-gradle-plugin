@@ -78,6 +78,12 @@ These are all possible configuration options:
 | `verbose`   | Be extra verbose. |
 | `yield`   | Call `Thread.yield()` in busy loops. |
 
+More options are available, but you probably won't need them:
+
+| Name | Description |
+| --- | --- |
+| `language` | format numbers according to the given locale, eg `en`, `fr`, etc. Will default to `en`. If unsure, just leave as is) |
+
 
 The plugin uses a separate location for `jcstress` files:
 
