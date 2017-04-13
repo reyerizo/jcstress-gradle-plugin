@@ -114,8 +114,8 @@ publishing {
 afterReleaseBuild.dependsOn bintrayUpload
 
 bintray {
-    user = hasProperty('bintray_user') ? property('bintray_user') : ""
-    key = hasProperty('bintray_api_key') ? property('bintray_api_key') : ""
+    user = binding.variables.containsKey('bintray_user') ? binding.variables.get('bintray_user') : ""
+    key = binding.variables.containsKey('bintray_api_key') ? binding.variables.get('bintray_api_key') : ""
     publications = ['mavenJava']
     dryRun = false
     publish = true
