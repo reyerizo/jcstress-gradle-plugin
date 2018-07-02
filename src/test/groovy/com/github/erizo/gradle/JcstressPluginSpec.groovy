@@ -91,7 +91,7 @@ class JcstressPluginSpec extends Specification {
 
     def "should include a class from jcstress sourceSet in jcstress jar"() {
         given:
-        def jcstressClassFile = createNewFile("build", "classes", "jcstress", "jcstress.class")
+        def jcstressClassFile = createNewFile("build", "classes", "java", "jcstress", "jcstress.class")
 
         when:
         plugin.apply(project)
@@ -117,7 +117,7 @@ class JcstressPluginSpec extends Specification {
 
     def "should include a class from test sourceSet in jcstress jar when test enabled"() {
         given:
-        def jcstressClassFile = createNewFile("build", "classes", "test", "jcstress.class")
+        def jcstressClassFile = createNewFile("build", "classes", "java", "test", "jcstress.class")
         plugin.apply(project)
         project.jcstress {
             includeTests = true
@@ -312,7 +312,7 @@ class JcstressPluginSpec extends Specification {
     def "should add jcstress dependencies to jcstress configuration"() {
         given:
         plugin.apply(project)
-        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.3')
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.4')
 
         when:
         project.evaluate()
@@ -450,7 +450,7 @@ class JcstressPluginSpec extends Specification {
     static DefaultProject createRootProject() {
         return ProjectBuilder
                 .builder()
-                .withProjectDir(Files.createTempDirectory("myjcstressproject").toFile())
+                .withProjectDir(Files.createTempDirectory("my-jcstress-project-").toFile())
                 .withName("myjcstressproject")
                 .build() as DefaultProject
     }

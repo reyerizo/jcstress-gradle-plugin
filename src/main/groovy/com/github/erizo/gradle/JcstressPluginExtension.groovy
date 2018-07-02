@@ -8,7 +8,7 @@ import org.gradle.api.Project
 class JcstressPluginExtension {
     def project
 
-    def jcstressDependency = 'org.openjdk.jcstress:jcstress-core:0.3'
+    def jcstressDependency = 'org.openjdk.jcstress:jcstress-core:0.4'
     def language = 'en'
 
     def includeTests = false
