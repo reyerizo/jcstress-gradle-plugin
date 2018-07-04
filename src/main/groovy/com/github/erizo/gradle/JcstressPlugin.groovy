@@ -152,7 +152,7 @@ class JcstressPlugin implements Plugin<Project> {
 
         project.afterEvaluate { project ->
             if (!extension.reportDir) {
-                extension.reportDir = getAndCreateDirectory(project.buildDir, "reports", "jcstress")
+                extension.setReportDir(getAndCreateDirectory(project.buildDir, "reports", "jcstress").getAbsolutePath())
             }
             task.args = [*task.args, *extension.buildArgs()]
             task.classpath += project.files(project.jcstressJar.archivePath)
