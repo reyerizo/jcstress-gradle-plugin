@@ -53,7 +53,7 @@ public class JcstressPluginExtension {
     }
 
     public static void addParameter(List<String> result, String param, String value) {
-        if (param.equals("-v") && value.equals("true")) {
+        if ("-v".equals(param) && "true".equals(value)) {
             result.add(param);
         }
         else if (value != null) {
