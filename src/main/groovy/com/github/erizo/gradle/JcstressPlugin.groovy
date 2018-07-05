@@ -15,23 +15,30 @@
  */
 package com.github.erizo.gradle
 
+import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.distribution.Distribution
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
+import org.gradle.plugins.ide.idea.model.IdeaModule
 
 import java.nio.file.Paths
+import java.util.function.Consumer
 
 /**
  * Configures the Jcstress Plugin.
@@ -40,80 +47,96 @@ import java.nio.file.Paths
  * @author jerzykrlk
  *
  */
-class JcstressPlugin implements Plugin<Project> {
+public class JcstressPlugin implements Plugin<Project> {
 
-    static final String JCSTRESS_NAME = 'jcstress'
-    static final String TASK_JCSTRESS_NAME = JCSTRESS_NAME
-    static final String TASK_JCSTRESS_JAR_NAME = 'jcstressJar'
-    static final String TASK_JCSTRESS_INSTALL_NAME = 'jcstressInstall'
-    static final String TASK_JCSTRESS_SCRIPTS_NAME = "jcstressScripts"
+    private static final String JCSTRESS_NAME = "jcstress";
+    private static final String TASK_JCSTRESS_NAME = JCSTRESS_NAME;
+    private static final String TASK_JCSTRESS_JAR_NAME = "jcstressJar";
+    private static final String TASK_JCSTRESS_INSTALL_NAME = "jcstressInstall";
+    private static final String TASK_JCSTRESS_SCRIPTS_NAME = "jcstressScripts";
 
-    private Project project
+    private Project project;
 
-    private String jcstressApplicationName
+    private String jcstressApplicationName;
 
-    void apply(Project project) {
-        this.project = project
-        this.jcstressApplicationName = project.name + "-jcstress"
+    public void apply(Project project) {
+        this.project = project;
+        this.jcstressApplicationName = project.getName() + "-jcstress";
 
-        project.pluginManager.apply(JavaPlugin)
-        project.pluginManager.apply(DistributionPlugin)
+        project.getPluginManager().apply(JavaPlugin.class);
+        project.getPluginManager().apply(DistributionPlugin.class);
 
-        final JcstressPluginExtension jcstressPluginExtension = project.extensions.create(JCSTRESS_NAME, JcstressPluginExtension, project)
+        final JcstressPluginExtension jcstressPluginExtension = project.getExtensions().create(JCSTRESS_NAME, JcstressPluginExtension.class, project);
 
-        addJcstressConfiguration()
+        addJcstressConfiguration();
 
-        addJcstressJarDependencies(jcstressPluginExtension)
+        addJcstressJarDependencies(jcstressPluginExtension);
 
-        addJcstressSourceSet(jcstressPluginExtension)
+        addJcstressSourceSet(jcstressPluginExtension);
 
-        addJcstressJarTask(jcstressPluginExtension)
+        addJcstressJarTask(jcstressPluginExtension);
 
-        addJcstressTask(jcstressPluginExtension)
+        addJcstressTask(jcstressPluginExtension);
 
-        addCreateScriptsTask(jcstressPluginExtension)
+        addCreateScriptsTask(jcstressPluginExtension);
 
-        Sync installAppTask = addInstallAppTask()
+        Sync installAppTask = addInstallAppTask();
 
-        configureInstallTasks(installAppTask)
+        configureInstallTasks(installAppTask);
 
-        updateIdeaPluginConfiguration()
+        updateIdeaPluginConfiguration();
     }
 
-    private addJcstressJarDependencies(JcstressPluginExtension jcstressPluginExtension) {
-        project.afterEvaluate {
-            addDependency(project.configurations['jcstress'], jcstressPluginExtension.jcstressDependency)
-            addDependency(project.configurations['testCompile'], jcstressPluginExtension.jcstressDependency)
-        }
+    // TODO: change class to lambda
+    private void addJcstressJarDependencies(final JcstressPluginExtension jcstressPluginExtension) {
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            void execute(Project proj) {
+                addDependency(proj, "jcstress", jcstressPluginExtension.getJcstressDependency());
+                addDependency(proj, "testCompile", jcstressPluginExtension.getJcstressDependency());
+            }
+        });
     }
 
-    private addDependency(Configuration configuration, String dependency) {
-        DependencyHandler dependencyHandler = project.getDependencies()
-        configuration.getDependencies().add(dependencyHandler.create(dependency))
+    private void addDependency(Project project, String configurationName, String dependencyName) {
+        DependencyHandler dependencyHandler = this.project.getDependencies();
+        Dependency dependency = dependencyHandler.create(dependencyName);
+
+        project.getConfigurations().getByName(configurationName).getDependencies().add(dependency);
     }
 
-    private Configuration addJcstressConfiguration() {
-        project.configurations.create(JCSTRESS_NAME)
+    private void addJcstressConfiguration() {
+        project.getConfigurations().create(JCSTRESS_NAME);
     }
 
-    private updateIdeaPluginConfiguration() {
-        project.afterEvaluate {
-            def hasIdea = project.plugins.findPlugin(IdeaPlugin)
-            if (hasIdea) {
-                project.idea {
-                    module {
-                        scopes.TEST.plus += [project.configurations.jcstress]
-                    }
-                }
-                project.idea {
-                    module {
-                        project.sourceSets.jcstress.java.srcDirs.each {
-                            testSourceDirs += project.file(it)
-                        }
-                    }
+    // TODO change class to lambda
+    private void updateIdeaPluginConfiguration() {
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            void execute(Project project) {
+                IdeaPlugin ideaPlugin = project.getPlugins().findPlugin(IdeaPlugin.class);
+                if (ideaPlugin != null) {
+                    IdeaModel ideaModel = project.getExtensions().getByType(IdeaModel.class);
+                    IdeaModule module = ideaModel.getModule();
+                    module.getScopes()
+                            .get("TEST")
+                            .get("plus")
+                            .add(project.getConfigurations().getByName("jcstress"));
+
+                    SourceSetContainer sourceSets = getProjectSourceSets();
+
+                    Set<File> jcstressSourceDirs = sourceSets.getByName("jcstress").getJava().getSrcDirs();
+                    Set<File> dirs = module.getTestSourceDirs()
+                    dirs.addAll(jcstressSourceDirs)
+                    module.setTestSourceDirs(dirs)
                 }
             }
-        }
+        });
+    }
+
+    private SourceSetContainer getProjectSourceSets() {
+        JavaPluginConvention plugin = project.getConvention().getPlugin(JavaPluginConvention.class);
+        return plugin.getSourceSets();
     }
 
     private void addJcstressJarTask(extension) {

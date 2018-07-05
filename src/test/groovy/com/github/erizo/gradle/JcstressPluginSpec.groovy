@@ -371,8 +371,11 @@ class JcstressPluginSpec extends Specification {
         plugin.apply(project)
         project.evaluate()
 
+        def testSourceDirs = project.idea.module.testSourceDirs
+        def jcstressSrcDirs = project.sourceSets.jcstress.java.srcDirs
+
         then:
-        project.idea.module.testSourceDirs.containsAll(project.sourceSets.jcstress.java.srcDirs)
+        testSourceDirs.containsAll(jcstressSrcDirs)
     }
 
     def "should add jsctress scripts task"() {
