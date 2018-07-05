@@ -1,7 +1,6 @@
 package com.github.erizo.gradle;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.gradle.api.tasks.JavaExec;
@@ -23,9 +22,9 @@ public class JcstressTask extends JavaExec {
     public List<String> jcstressArgs() {
         List<String> result = new ArrayList<>();
         if (jcstressTestName != null) {
-            return new ArrayList<>(Arrays.asList("-t", jcstressTestName));
+            result.add("-t");
+            result.add(jcstressTestName);
         }
-
         return result;
     }
 

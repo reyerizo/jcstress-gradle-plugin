@@ -3,6 +3,8 @@ package com.github.erizo.gradle;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import org.gradle.api.Project;
 
 /**
@@ -33,7 +35,7 @@ public class JcstressPluginExtension {
         this.project = project;
     }
 
-    public List buildArgs() {
+    public List<String> buildArgs() {
         List<String> result = new ArrayList<>();
         addParameter(result, "-c", concurrency);
         addParameter(result, "-deoptRatio", deoptRatio);

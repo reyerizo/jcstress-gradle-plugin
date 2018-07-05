@@ -139,27 +139,6 @@ public class JcstressPluginJava implements Plugin<Project> {
         return plugin.getSourceSets();
     }
 
-//    private void addJcstressJarTask(extension) {
-//        def jcstressExclusions = {
-//                exclude '**/META-INF/BenchmarkList'
-//                exclude '**/META-INF/CompilerHints'
-//        }
-//
-//        project.tasks.create(name: TASK_JCSTRESS_JAR_NAME, type:Jar) {
-//            dependsOn 'jcstressClasses'
-//            inputs.dir project.sourceSets.jcstress.output
-//            project.afterEvaluate {
-//                from(project.sourceSets.jcstress.output)
-//                from(project.sourceSets.main.output, jcstressExclusions)
-//                if (extension.includeTests) {
-//                    from(project.sourceSets.test.output, jcstressExclusions)
-//                }
-//            }
-//
-//            classifier = 'jcstress'
-//        }
-//    }
-
     private void addJcstressJarTask(final JcstressPluginExtension extension) {
 
         Action<CopySpec> jcstressExclusions = copySpec -> copySpec.exclude("**/META-INF/BenchmarkList", "**/META-INF/CompilerHints");
@@ -407,25 +386,6 @@ public class JcstressPluginJava implements Plugin<Project> {
 //            }
 //
 //        });
-    }
-
-    /**
-     * Dummy method, loads configuration dependencies.
-     * @param configuration configuration
-     * @param jarFileName jar file name
-     * @return ignored
-     */
-    private static Set<File> filterConfiguration(Configuration configuration, final String jarFileName) {
-        return configuration.filter(new Closure<Boolean>(null, null) {
-            public Boolean doCall(File it) {
-                return it.getName().contains(jarFileName);
-            }
-
-            public Boolean doCall() {
-                return doCall(null);
-            }
-
-        }).getFiles();
     }
 
     public static String getFileNameFromDependency(String gradleDependencyName) {
