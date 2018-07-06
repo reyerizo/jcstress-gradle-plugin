@@ -69,26 +69,46 @@ public class JcstressPlugin implements Plugin<Project> {
 
 	private String jcstressApplicationName;
 
+	private SourceSet jcstressSourceSet;
+	private SourceSet mainSourceSet;
+	private SourceSet testSourceSet;
+
+	private Configuration compileConfiguration;
+	private Configuration jcstressConfiguration;
+	private Configuration runtimeConfiguration;
+	private Configuration testCompileConfiguration;
+	private Configuration testRuntimeConfiguration;
+
+	private Jar jcstressJarTask;
+	private JcstressTask jcstressTask;
+	private Task jcstressClassesTask;
+
+	private CreateStartScripts createStartScriptsTask;
+
+	private JcstressPluginExtension jcstressPluginExtension;
+
 	public void apply(Project project) {
 		this.project = project;
 		this.jcstressApplicationName = project.getName() + "-jcstress";
 
-		project.getPluginManager().apply(JavaPlugin.class);
-		project.getPluginManager().apply(DistributionPlugin.class);
+		configureJavaPlugin();
+		configureDistributionPlugin();
 
-		final JcstressPluginExtension jcstressPluginExtension = project.getExtensions().create(JCSTRESS_NAME, JcstressPluginExtension.class, project);
+		jcstressPluginExtension = project.getExtensions().create(JCSTRESS_NAME, JcstressPluginExtension.class, project);
 
-		addJcstressConfiguration();
+		this.jcstressConfiguration = createJcstressConfiguration();
 
-		addJcstressJarDependencies(jcstressPluginExtension);
+		addJcstressJarDependencies();
 
-		addJcstressSourceSet(jcstressPluginExtension);
+		this.jcstressSourceSet = createJcstressSourceSet();
 
-		addJcstressJarTask(jcstressPluginExtension);
+		this.jcstressClassesTask = project.getTasks().getByName("jcstressClasses");
 
-		addJcstressTask(jcstressPluginExtension);
+		this.jcstressJarTask = createJcstressJarTask();
 
-		addCreateScriptsTask(jcstressPluginExtension);
+		this.jcstressTask = addJcstressTask();
+
+		createStartScriptsTask = addCreateStartScriptsTask();
 
 		Sync installAppTask = addInstallAppTask();
 
@@ -98,30 +118,145 @@ public class JcstressPlugin implements Plugin<Project> {
 
 	}
 
-	private void addCreateScriptsTask(final JcstressPluginExtension extension) {
-		CreateStartScripts createStartScripts = project.getTasks().create(TASK_JCSTRESS_SCRIPTS_NAME, CreateStartScripts.class);
-		createStartScripts.setDescription("Creates OS specific scripts to run the project as a jcstress test suite.");
-		createStartScripts.setClasspath(
-				project.getTasks().getByName(TASK_JCSTRESS_JAR_NAME).getOutputs().getFiles()
-						.plus(project.getConfigurations().getByName("jcstress"))
-						.plus(project.getConfigurations().getByName("runtime"))
-		);
+	private void configureJavaPlugin() {
+		project.getPluginManager().apply(JavaPlugin.class);
 
-		createStartScripts.setMainClassName("org.openjdk.jcstress.Main");
-		createStartScripts.setApplicationName(jcstressApplicationName);
-		createStartScripts.setOutputDir(new File(project.getBuildDir(), "scripts"));
-		createStartScripts.setDefaultJvmOpts(new ArrayList<>(Arrays.asList(
+		mainSourceSet = getProjectSourceSets().getByName("main");
+		testSourceSet = getProjectSourceSets().getByName("test");
+
+		this.compileConfiguration = project.getConfigurations().getByName("compile");
+		this.runtimeConfiguration = project.getConfigurations().getByName("runtime");
+		this.testCompileConfiguration = project.getConfigurations().getByName("testCompile");
+		this.testRuntimeConfiguration = project.getConfigurations().getByName("testRuntime");
+	}
+
+	private void configureDistributionPlugin() {
+		project.getPluginManager().apply(DistributionPlugin.class);
+	}
+
+	private Configuration createJcstressConfiguration() {
+		return project.getConfigurations().create(JCSTRESS_NAME);
+	}
+
+	private void addJcstressJarDependencies() {
+		project.afterEvaluate(proj -> {
+			addDependency(proj, "jcstress", jcstressPluginExtension.getJcstressDependency());
+			addDependency(proj, "testCompile", jcstressPluginExtension.getJcstressDependency());
+		});
+	}
+
+	private SourceSet createJcstressSourceSet() {
+
+		SourceSet jcstressSourceSet = getProjectSourceSets().create("jcstress");
+
+		FileCollection compileClasspath = jcstressSourceSet.getCompileClasspath()
+				.plus(jcstressConfiguration)
+				.plus(compileConfiguration)
+				.plus(mainSourceSet.getOutput());
+
+		jcstressSourceSet.setCompileClasspath(compileClasspath);
+
+		FileCollection runtimeClasspath = jcstressSourceSet.getRuntimeClasspath()
+				.plus(jcstressConfiguration)
+				.plus(runtimeConfiguration)
+				.plus(mainSourceSet.getOutput());
+
+		jcstressSourceSet.setRuntimeClasspath(runtimeClasspath);
+
+		project.afterEvaluate(proj -> {
+			if (jcstressPluginExtension.getIncludeTests()) {
+				FileCollection ccp = jcstressSourceSet.getCompileClasspath()
+						.plus(testCompileConfiguration)
+						.plus(testSourceSet.getOutput());
+				jcstressSourceSet.setCompileClasspath(ccp);
+
+				FileCollection rcp = jcstressSourceSet.getRuntimeClasspath()
+						.plus(testRuntimeConfiguration)
+						.plus(testSourceSet.getOutput());
+				jcstressSourceSet.setRuntimeClasspath(rcp);
+			}
+		});
+
+		return jcstressSourceSet;
+	}
+
+	private Jar createJcstressJarTask() {
+
+		Action<CopySpec> jcstressExclusions = copySpec -> copySpec.exclude("**/META-INF/BenchmarkList", "**/META-INF/CompilerHints");
+
+		Jar jcstressJarTask = project.getTasks().create(TASK_JCSTRESS_JAR_NAME, Jar.class);
+
+		jcstressJarTask.dependsOn(jcstressClassesTask);
+		jcstressJarTask.getInputs().dir(jcstressSourceSet.getOutput());
+
+		project.afterEvaluate(proj -> {
+			jcstressJarTask.from(jcstressSourceSet.getOutput());
+			jcstressJarTask.from(mainSourceSet.getOutput(), jcstressExclusions);
+			if (jcstressPluginExtension.getIncludeTests()) {
+				jcstressJarTask.from(testSourceSet.getOutput(), jcstressExclusions);
+			}
+		});
+
+		return jcstressJarTask;
+	}
+
+	private JcstressTask addJcstressTask() {
+		final JcstressTask jcstressTask = project.getTasks().create(TASK_JCSTRESS_NAME, JcstressTask.class);
+
+		jcstressTask.dependsOn(jcstressJarTask);
+		jcstressTask.setMain("org.openjdk.jcstress.Main");
+		jcstressTask.setGroup("Verification");
+		jcstressTask.setDescription("Runs jcstress benchmarks.");
+		jcstressTask.setJvmArgs(Arrays.asList("-XX:+UnlockDiagnosticVMOptions", "-XX:+WhiteBoxAPI", "-XX:-RestrictContended", "-Duser.language=" + jcstressPluginExtension.getLanguage()));
+		jcstressTask.setClasspath(jcstressConfiguration.plus(project.getConfigurations().getByName("jcstressRuntime").plus(runtimeConfiguration)));
+		jcstressTask.doFirst(task1 -> getAndCreateDirectory(project.getBuildDir(), "tmp", "jcstress"));
+
+		project.afterEvaluate(project -> {
+			if (jcstressPluginExtension.getReportDir() == null) {
+				jcstressPluginExtension.setReportDir(getAndCreateDirectory(project.getBuildDir(), "reports", "jcstress").getAbsolutePath());
+			}
+
+			jcstressTask.args(jcstressPluginExtension.buildArgs());
+			jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(project.files(jcstressJarTask.getArchivePath())));
+			filterConfiguration(jcstressConfiguration, "jcstress-core");
+			if (jcstressPluginExtension.getIncludeTests()) {
+				jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(testRuntimeConfiguration));
+			}
+
+			File path = getAndCreateDirectory(project.getBuildDir(), "tmp", "jcstress");
+			jcstressTask.setWorkingDir(path);
+		});
+
+		jcstressTask.doFirst(task1 -> jcstressTask.args(jcstressTask.jcstressArgs()));
+
+		return jcstressTask;
+	}
+
+	private CreateStartScripts addCreateStartScriptsTask() {
+		CreateStartScripts createStartScriptsTask = project.getTasks().create(TASK_JCSTRESS_SCRIPTS_NAME, CreateStartScripts.class);
+
+		createStartScriptsTask.setDescription("Creates OS specific scripts to run the project as a jcstress test suite.");
+		createStartScriptsTask.setClasspath(jcstressJarTask.getOutputs().getFiles()
+						.plus(jcstressConfiguration)
+						.plus(runtimeConfiguration));
+
+		createStartScriptsTask.setMainClassName("org.openjdk.jcstress.Main");
+		createStartScriptsTask.setApplicationName(jcstressApplicationName);
+		createStartScriptsTask.setOutputDir(new File(project.getBuildDir(), "scripts"));
+		createStartScriptsTask.setDefaultJvmOpts(new ArrayList<>(Arrays.asList(
 				"-XX:+UnlockDiagnosticVMOptions",
 				"-XX:+WhiteBoxAPI",
 				"-XX:-RestrictContended",
-				"-Duser.language=" + extension.getLanguage())));
+				"-Duser.language=" + jcstressPluginExtension.getLanguage())));
 
 		project.afterEvaluate(it -> {
-			if (extension.getIncludeTests()) {
-				FileCollection classpath = createStartScripts.getClasspath();
-				createStartScripts.setClasspath(classpath.plus(project.getConfigurations().getByName("testRuntime")));
+			if (jcstressPluginExtension.getIncludeTests()) {
+				FileCollection classpath = createStartScriptsTask.getClasspath();
+				createStartScriptsTask.setClasspath(classpath.plus(testRuntimeConfiguration));
 			}
 		});
+
+		return createStartScriptsTask;
 	}
 
 	public void configureInstallTasks(Sync installTask) {
@@ -151,11 +286,13 @@ public class JcstressPlugin implements Plugin<Project> {
 
 	private Sync addInstallAppTask() {
 		DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
+
 		Distribution distribution = distributions.create("jcstress");
 		distribution.setBaseName(jcstressApplicationName);
 		configureDistSpec(distribution.getContents());
 
 		Sync installTask = project.getTasks().create(TASK_JCSTRESS_INSTALL_NAME, Sync.class);
+
 		installTask.setDescription("Installs the project as a JVM application along with libs and OS specific scripts.");
 		installTask.setGroup("Verification");
 		installTask.with(distribution.getContents());
@@ -183,97 +320,10 @@ public class JcstressPlugin implements Plugin<Project> {
 		distSpec.with(copy);
 	}
 
-	private void addJcstressSourceSet(final JcstressPluginExtension extension) {
-
-		SourceSet jcstress = getProjectSourceSets().create("jcstress");
-
-		FileCollection compileClasspath = jcstress.getCompileClasspath()
-				.plus(project.getConfigurations().getByName("jcstress"))
-				.plus(project.getConfigurations().getByName("compile"))
-				.plus(getProjectSourceSets().getByName("main").getOutput());
-		jcstress.setCompileClasspath(compileClasspath);
-
-		FileCollection runtimeClasspath = jcstress.getRuntimeClasspath()
-				.plus(project.getConfigurations().getByName("jcstress"))
-				.plus(project.getConfigurations().getByName("runtime"))
-				.plus(getProjectSourceSets().getByName("main").getOutput());
-		jcstress.setRuntimeClasspath(runtimeClasspath);
-
-		project.afterEvaluate(proj -> {
-			if (extension.getIncludeTests()) {
-
-				// TODO - back to java, check the mutability
-				FileCollection ccp = jcstress.getCompileClasspath();
-				ccp = ccp
-						.plus(proj.getConfigurations().getByName("testCompile"))
-						.plus(getProjectSourceSets().getByName("test").getOutput());
-				jcstress.setCompileClasspath(ccp);
-
-				FileCollection rcp = jcstress.getRuntimeClasspath();
-				rcp = rcp
-						.plus(proj.getConfigurations().getByName("testRuntime"))
-						.plus(getProjectSourceSets().getByName("test").getOutput());
-				jcstress.setRuntimeClasspath(rcp);
-			}
-		});
-	}
-
-	private void addJcstressTask(final JcstressPluginExtension extension) {
-		final JcstressTask task = project.getTasks().create(TASK_JCSTRESS_NAME, JcstressTask.class);
-
-		task.dependsOn(project.getTasks().getByName("jcstressJar"));
-		task.setMain("org.openjdk.jcstress.Main");
-		task.setGroup("Verification");
-		task.setDescription("Runs jcstress benchmarks.");
-		task.setJvmArgs(new ArrayList<>(Arrays.asList("-XX:+UnlockDiagnosticVMOptions", "-XX:+WhiteBoxAPI", "-XX:-RestrictContended", "-Duser.language=" + extension.getLanguage())));
-		task.setClasspath(project.getConfigurations().getByName("jcstress").plus(project.getConfigurations().getByName("jcstressRuntime").plus(project.getConfigurations().getByName("runtime"))));
-		task.doFirst(task1 -> getAndCreateDirectory(project.getBuildDir(), "tmp", "jcstress"));
-
-		project.afterEvaluate(project -> {
-			if (extension.getReportDir() == null) {
-				extension.setReportDir(getAndCreateDirectory(project.getBuildDir(), "reports", "jcstress").getAbsolutePath());
-			}
-
-			task.args(extension.buildArgs());
-			Jar jcstressJarTask = (Jar) project.getTasks().getByName("jcstressJar");
-			task.setProperty("classpath", task.getClasspath().plus(project.files(jcstressJarTask.getArchivePath())));
-			filterConfiguration(project.getConfigurations().getByName("jcstress"), "jcstress-core");
-			if (extension.getIncludeTests()) {
-				task.setProperty("classpath", task.getClasspath().plus(project.getConfigurations().getByName("testRuntime")));
-			}
-
-			File path = getAndCreateDirectory(project.getBuildDir(), "tmp", "jcstress");
-			task.setWorkingDir(path);
-		});
-
-		task.doFirst(task1 -> {
-			JcstressTask jcstressTask = (JcstressTask) task1;
-			jcstressTask.args(jcstressTask.jcstressArgs());
-		});
-	}
-
 	private static File getAndCreateDirectory(File dir, String... subdirectory) {
 		File path = Paths.get(dir.getPath(), subdirectory).toFile();
 		path.mkdirs();
 		return path;
-	}
-
-	private void addJcstressJarTask(final JcstressPluginExtension extension) {
-
-		Action<CopySpec> jcstressExclusions = copySpec -> copySpec.exclude("**/META-INF/BenchmarkList", "**/META-INF/CompilerHints");
-
-		Jar jarTask = project.getTasks().create(TASK_JCSTRESS_JAR_NAME, Jar.class);
-
-		jarTask.dependsOn(project.getTasks().getByName("jcstressClasses"));
-		jarTask.getInputs().dir(getProjectSourceSets().getByName("jcstress").getOutput());
-		project.afterEvaluate(proj -> {
-			jarTask.from(getProjectSourceSets().getByName("jcstress").getOutput());
-			jarTask.from(getProjectSourceSets().getByName("main").getOutput(), jcstressExclusions);
-			if (extension.getIncludeTests()) {
-				jarTask.from(getProjectSourceSets().getByName("test").getOutput(), jcstressExclusions);
-			}
-		});
-
 	}
 
 	private void updateIdeaPluginConfiguration() {
@@ -285,11 +335,9 @@ public class JcstressPlugin implements Plugin<Project> {
 				module.getScopes()
 						.get("TEST")
 						.get("plus")
-						.add(project.getConfigurations().getByName("jcstress"));
+						.add(jcstressConfiguration);
 
-				SourceSetContainer sourceSets = getProjectSourceSets();
-
-				Set<File> jcstressSourceDirs = sourceSets.getByName("jcstress").getJava().getSrcDirs();
+				Set<File> jcstressSourceDirs = jcstressSourceSet.getJava().getSrcDirs();
 				Set<File> dirs = module.getTestSourceDirs();
 				dirs.addAll(jcstressSourceDirs);
 				module.setTestSourceDirs(dirs);
@@ -300,17 +348,6 @@ public class JcstressPlugin implements Plugin<Project> {
 	private SourceSetContainer getProjectSourceSets() {
 		JavaPluginConvention plugin = project.getConvention().getPlugin(JavaPluginConvention.class);
 		return plugin.getSourceSets();
-	}
-
-	private void addJcstressConfiguration() {
-		project.getConfigurations().create(JCSTRESS_NAME);
-	}
-
-	private void addJcstressJarDependencies(final JcstressPluginExtension jcstressPluginExtension) {
-		project.afterEvaluate(proj -> {
-			addDependency(proj, "jcstress", jcstressPluginExtension.getJcstressDependency());
-			addDependency(proj, "testCompile", jcstressPluginExtension.getJcstressDependency());
-		});
 	}
 
 	private void addDependency(Project project, String configurationName, String dependencyName) {
