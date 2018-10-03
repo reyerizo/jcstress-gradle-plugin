@@ -7,8 +7,8 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.researchgate:gradle-release:2.1.2'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.2'
+        classpath 'net.researchgate:gradle-release:2.7.0'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
         classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
     }
 }
