@@ -11,6 +11,7 @@ import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -184,6 +185,25 @@ class JcstressPluginSpec extends Specification {
         project.tasks.jcstress.args = ["asdf"]
         project.evaluate()
         def jcstressTask = project.tasks['jcstress']
+
+        then:
+        jcstressTask.args.containsAll(['asdf', '-f', '30', '-time', '200'])
+    }
+
+    @Ignore("only manually")
+    def "should start jcstress suite inline and fail"() {
+        given:
+        plugin.apply(project)
+        project.jcstress {
+            timeMillis = "200"
+            forks = 30
+        }
+
+        when:
+        project.tasks.jcstress.args = ["asdf"]
+        project.evaluate()
+        def jcstressTask = project.tasks['jcstress'] as JcstressTask
+        jcstressTask.getActions().forEach({action -> action.execute(jcstressTask)})
 
         then:
         jcstressTask.args.containsAll(['asdf', '-f', '30', '-time', '200'])
@@ -371,8 +391,11 @@ class JcstressPluginSpec extends Specification {
         plugin.apply(project)
         project.evaluate()
 
+        def testSourceDirs = project.idea.module.testSourceDirs
+        def jcstressSrcDirs = project.sourceSets.jcstress.java.srcDirs
+
         then:
-        project.idea.module.testSourceDirs.containsAll(project.sourceSets.jcstress.java.srcDirs)
+        testSourceDirs.containsAll(jcstressSrcDirs)
     }
 
     def "should add jsctress scripts task"() {
