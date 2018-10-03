@@ -92,11 +92,11 @@ src/jcstress/java       // java sources
 src/jcstress/resources  // resources
 ```
 
-By default, the plugin uses `jcstress-core-0.3`. This can be easily changed with the following:
+By default, the plugin uses `jcstress-core-0.4`. This can be easily changed with the following:
 
 ```groovy
 jcstress {
-    jcstressDependency 'org.openjdk.jcstress:jcstress-core:0.3.x'
+    jcstressDependency 'org.openjdk.jcstress:jcstress-core:0.x'
 }
 ```
 
