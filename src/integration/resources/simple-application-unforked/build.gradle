@@ -17,10 +17,6 @@ repositories {
     mavenLocal()
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '3.4.1'
-}
-
 jcstress {
     verbose = true
     timeMillis = "200"
