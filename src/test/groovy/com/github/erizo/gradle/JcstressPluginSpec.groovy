@@ -332,7 +332,7 @@ class JcstressPluginSpec extends Specification {
     def "should add jcstress dependencies to jcstress configuration"() {
         given:
         plugin.apply(project)
-        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.4')
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.5')
 
         when:
         project.evaluate()

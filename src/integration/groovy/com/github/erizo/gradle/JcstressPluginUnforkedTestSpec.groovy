@@ -40,6 +40,7 @@ class JcstressPluginUnforkedTestSpec extends Specification {
                 .withProjectDir(testProjectDir.root)
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
                 .withPluginClasspath(pluginClasspath)
+                .withDebug(true)
                 .build()
     }
 
