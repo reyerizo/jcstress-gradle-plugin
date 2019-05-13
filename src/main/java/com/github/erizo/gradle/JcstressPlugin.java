@@ -222,7 +222,7 @@ public class JcstressPlugin implements Plugin<Project> {
             }
 
             jcstressTask.args(jcstressPluginExtension.buildArgs());
-            jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(project.files(jcstressJarTask.getArchiveFile())));
+            jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(project.files(jcstressJarTask.getArchivePath())));
             filterConfiguration(jcstressConfiguration, "jcstress-core");
             if (jcstressPluginExtension.getIncludeTests()) {
                 jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(testRuntimeConfiguration));
