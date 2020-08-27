@@ -338,7 +338,7 @@ class JcstressPluginSpec extends Specification {
         project.evaluate()
 
         then:
-        getConfiguration("jcstress").allDependencies.contains(jcstressDependency)
+        getConfiguration("jcstressImplementation").allDependencies.contains(jcstressDependency)
     }
 
     def "should override jcstress dependency with gradle configuration"() {
@@ -356,8 +356,8 @@ class JcstressPluginSpec extends Specification {
         project.evaluate()
 
         then:
-        getConfiguration("jcstress").allDependencies.contains(newJcstressDependency)
-        !getConfiguration("jcstress").allDependencies.contains(defaultJcstressDependency)
+        getConfiguration("jcstressImplementation").allDependencies.contains(newJcstressDependency)
+        !getConfiguration("jcstressImplementation").allDependencies.contains(defaultJcstressDependency)
     }
 
     def "should not add jcstress dependencies to compile configuration"() {
