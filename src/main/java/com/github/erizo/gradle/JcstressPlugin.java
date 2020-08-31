@@ -241,7 +241,7 @@ public class JcstressPlugin implements Plugin<Project> {
 
         createStartScriptsTask.setDescription("Creates OS specific scripts to run the project as a jcstress test suite.");
         createStartScriptsTask.setClasspath(jcstressJarTask.getOutputs().getFiles()
-                .plus(jcstressConfiguration)
+                .plus(project.getConfigurations().getByName(JCSTRESS_SOURCESET_NAME + "RuntimeClasspath"))
                 .plus(mainRuntimeClasspath));
 
         createStartScriptsTask.setMainClassName("org.openjdk.jcstress.Main");
