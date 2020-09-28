@@ -1,0 +1,25 @@
+buildscript {
+    repositories {
+        jcenter()
+        mavenLocal()
+    }
+}
+
+plugins {
+    id 'jcstress'
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    jcenter()
+    mavenLocal()
+}
+
+jcstress {
+    verbose = true
+    timeMillis = "200"
+    forks = 0
+    iterations = 1
+}
