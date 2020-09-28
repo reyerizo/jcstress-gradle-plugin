@@ -3,6 +3,7 @@ package com.github.erizo.gradle
 import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+import org.gradle.testkit.runner.TaskOutcome
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -34,6 +35,30 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
 
         then:
         fileNames.sort() == ['simple-application-twojar.jar', 'simple-application-twojar-jcstress.jar'].sort()
+    }
+
+    def "should not throw a null pointer on a new gradle and apisample"() {
+        given:
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-new-gradle-apisample").toURI()).toFile()
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)
+
+        when:
+        def result = runGradleTask('jcstress')
+
+        then:
+        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "should not throw a null pointer on a new gradle, apisample and Kotlin"() {
+        given:
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-new-gradle-apisample-kt").toURI()).toFile()
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)
+
+        when:
+        def result = runGradleTask('jcstress')
+
+        then:
+        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
     }
 
     private BuildResult runGradleTask(String... taskNames) {
