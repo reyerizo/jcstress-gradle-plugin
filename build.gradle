@@ -111,7 +111,7 @@ publishing {
     }
 }
 
-afterReleaseBuild.dependsOn bintrayUpload
+afterReleaseBuild.dependsOn(bintrayUpload, publishPlugins)
 
 bintray {
     user = System.properties['bintray_user'] ? System.properties['bintray_user'] : ""
