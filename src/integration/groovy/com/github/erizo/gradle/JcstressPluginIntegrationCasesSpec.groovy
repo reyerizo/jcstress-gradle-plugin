@@ -30,11 +30,10 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
 
         when:
         runGradleTask('jar', 'jcstressJar')
-        def libsDir = Path.of(projectRoot.toString(), 'build', 'libs').toFile()
+        def fileNames = Path.of(projectRoot.toString(), 'build', 'libs').toFile().list()
 
         then:
-        libsDir.list().contains('simple-application-twojar.jar')
-        libsDir.list().contains('simple-application-twojar-jcstress.jar')
+        fileNames.sort() == ['simple-application-twojar.jar', 'simple-application-twojar-jcstress.jar'].sort()
     }
 
     private BuildResult runGradleTask(String... taskNames) {

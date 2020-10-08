@@ -9,13 +9,14 @@ buildscript {
     dependencies {
         classpath 'net.researchgate:gradle-release:2.7.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4'
-        classpath "com.gradle.publish:plugin-publish-plugin:0.9.7"
     }
 }
 
 plugins {
     id 'jacoco'
+    id 'java-gradle-plugin'
     id 'com.github.kt3k.coveralls' version '2.6.3'
+    id 'com.gradle.plugin-publish' version '0.12.0'
 }
 
 group 'com.github.erizo.gradle'
@@ -58,7 +59,7 @@ configurations {
 
 idea {
     module {
-        scopes.TEST.plus += [configurations.integrationImplementation]
+        scopes.TEST.plus += [configurations.integrationRuntimeClasspath, configurations.integrationCompileClasspath]
     }
 }
 
@@ -146,11 +147,15 @@ pluginBundle {
     vcsUrl = 'https://github.com/jerzykrlk/jcstress-gradle-plugin'
     description = 'Jcstress gradle plugin'
     tags = ['jcstress', 'gradle']
+}
 
+gradlePlugin {
     plugins {
         jcstressGradlePlugin {
             id = 'com.github.erizo.gradle.jcstress'
             displayName = 'Jcstress gradle plugin'
+            description = 'This plugin integrates The Java Concurrency Stress tests with Gradle.'
+            implementationClass = 'com.github.erizo.gradle.JcstressPlugin'
         }
     }
 }
