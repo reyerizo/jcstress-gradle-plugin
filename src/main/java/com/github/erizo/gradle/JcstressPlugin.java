@@ -199,6 +199,7 @@ public class JcstressPlugin implements Plugin<Project> {
             if (jcstressPluginExtension.getIncludeTests()) {
                 jcstressJarTask.from(testSourceSet.getOutput(), jcstressExclusions);
             }
+            jcstressJarTask.getArchiveClassifier().set("jcstress");
         });
 
         return jcstressJarTask;
