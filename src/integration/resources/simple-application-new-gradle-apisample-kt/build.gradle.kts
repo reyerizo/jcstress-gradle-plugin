@@ -1,8 +1,15 @@
+repositories {
+    jcenter()
+}
+
+    plugins {
+    id("jcstress")
+}
 apply(plugin = "jcstress")
 
 jcstress {
-    verbose = true
+    verbose = "true"
     timeMillis = "200"
-    forks = 0
-    iterations = 1
+    forks = "0"
+    iterations = "1"
 }
