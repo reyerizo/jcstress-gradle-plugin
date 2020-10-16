@@ -214,14 +214,21 @@ public class JcstressPlugin implements Plugin<Project> {
         jcstressTask.setDescription("Runs jcstress benchmarks.");
         jcstressTask.setJvmArgs(Arrays.asList("-XX:+UnlockDiagnosticVMOptions", "-XX:+WhiteBoxAPI", "-XX:-RestrictContended", "-Duser.language=" + jcstressPluginExtension.getLanguage()));
         jcstressTask.setClasspath(jcstressConfiguration.plus(project.getConfigurations().getByName(JCSTRESS_SOURCESET_NAME + "RuntimeClasspath").plus(mainRuntimeClasspath)));
-        jcstressTask.doFirst(task1 -> getAndCreateDirectory(project.getBuildDir(), "tmp", "jcstress"));
+        jcstressTask.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task1) {
+                getAndCreateDirectory(project.getBuildDir(), "tmp", "jcstress");
+            }
+        });
 
         project.afterEvaluate(project -> {
             if (jcstressPluginExtension.getReportDir() == null) {
                 jcstressPluginExtension.setReportDir(getAndCreateDirectory(project.getBuildDir(), "reports", "jcstress").getAbsolutePath());
             }
-
             jcstressTask.args(jcstressPluginExtension.buildArgs());
+
+            jcstressTask.reportsDirectory = new File(jcstressPluginExtension.getReportDir());
+
             jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(project.files(jcstressJarTask.getArchiveFile())));
             filterConfiguration(jcstressConfiguration, "jcstress-core");
             if (jcstressPluginExtension.getIncludeTests()) {
@@ -232,7 +239,12 @@ public class JcstressPlugin implements Plugin<Project> {
             jcstressTask.setWorkingDir(path);
         });
 
-        jcstressTask.doFirst(task1 -> jcstressTask.args(jcstressTask.jcstressArgs()));
+        jcstressTask.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task1) {
+                jcstressTask.args(jcstressTask.jcstressArgs());
+            }
+        });
 
         return jcstressTask;
     }
