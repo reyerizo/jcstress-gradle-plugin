@@ -341,6 +341,32 @@ class JcstressPluginSpec extends Specification {
         getConfiguration("jcstressImplementation").allDependencies.contains(jcstressDependency)
     }
 
+    def "should add jcstress dependencies to kapt if it is enabled"() {
+        given:
+        project.getConfigurations().create("kaptJcstress")
+        plugin.apply(project)
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.5')
+
+        when:
+        project.evaluate()
+
+        then:
+        getConfiguration("kaptJcstress").allDependencies.contains(jcstressDependency)
+        !getConfiguration("jcstressAnnotationProcessor").allDependencies.contains(jcstressDependency)
+    }
+
+    def "should add jcstress dependencies to annotation processor if no kapt available"() {
+        given:
+        plugin.apply(project)
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.5')
+
+        when:
+        project.evaluate()
+
+        then:
+        getConfiguration("jcstressAnnotationProcessor").allDependencies.contains(jcstressDependency)
+    }
+
     def "should override jcstress dependency with gradle configuration"() {
         given:
         def newJcstressDependency = project.dependencies.create('org.springframework:spring-core:4.0.0.RELEASE')

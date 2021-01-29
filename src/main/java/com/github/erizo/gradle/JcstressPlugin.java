@@ -66,6 +66,7 @@ public class JcstressPlugin implements Plugin<Project> {
     private static final String TASK_JCSTRESS_JAR_NAME = "jcstressJar";
     private static final String TASK_JCSTRESS_INSTALL_NAME = "jcstressInstall";
     private static final String TASK_JCSTRESS_SCRIPTS_NAME = "jcstressScripts";
+    public static final String KAPT_JCSTRESS_CONFIGURATION_NAME = "kaptJcstress";
 
     private Project project;
 
@@ -145,8 +146,16 @@ public class JcstressPlugin implements Plugin<Project> {
     private void addJcstressJarDependencies() {
         project.afterEvaluate(proj -> {
             addDependency(proj, JCSTRESS_SOURCESET_NAME + "Implementation", jcstressPluginExtension.getJcstressDependency());
-            addDependency(proj, JCSTRESS_SOURCESET_NAME + "AnnotationProcessor", jcstressPluginExtension.getJcstressDependency());
+            if (hasConfiguration(proj, KAPT_JCSTRESS_CONFIGURATION_NAME)) {
+                addDependency(proj, KAPT_JCSTRESS_CONFIGURATION_NAME, jcstressPluginExtension.getJcstressDependency());
+            } else {
+                addDependency(proj, JCSTRESS_SOURCESET_NAME + "AnnotationProcessor", jcstressPluginExtension.getJcstressDependency());
+            }
         });
+    }
+
+    private boolean hasConfiguration(Project project, String configurationName) {
+        return project.getConfigurations().findByName(configurationName) != null;
     }
 
     private SourceSet createJcstressSourceSet() {
