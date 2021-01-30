@@ -13,7 +13,7 @@ import org.gradle.api.Project;
 public class JcstressPluginExtension {
 
     private Project project;
-    private String jcstressDependency = "org.openjdk.jcstress:jcstress-core:0.5";
+    private String jcstressDependency = "org.openjdk.jcstress:jcstress-core:0.7";
     private String language = "en";
     private Boolean includeTests = false;
     private String concurrency;
