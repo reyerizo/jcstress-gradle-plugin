@@ -388,7 +388,7 @@ class JcstressPluginSpec extends Specification {
 
     def "should not add jcstress dependencies to compile configuration"() {
         given:
-        def jcstressDependency = project.dependencies.create('com.github.erizo.gradle:jcstress-core:1.0-20160519191500')
+        def jcstressDependency = project.dependencies.create('com.github.reyerizo.gradle:jcstress-core:1.0-20160519191500')
 
         when:
         plugin.apply(project)
@@ -493,7 +493,7 @@ class JcstressPluginSpec extends Specification {
 
     def "should extract file name from Gradle dependency"() {
         expect:
-        plugin.getFileNameFromDependency('com.github.erizo.gradle:jcstress-core:1.0-20160519191500') == "jcstress-core-1.0-20160519191500.jar"
+        plugin.getFileNameFromDependency('com.github.reyerizo.gradle:jcstress-core:1.0-20160519191500') == "jcstress-core-1.0-20160519191500.jar"
     }
 
     static DefaultProject createRootProject() {
