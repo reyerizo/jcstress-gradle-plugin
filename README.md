@@ -15,20 +15,12 @@ _build.gradle:_
 ```groovy
 
 buildscript {
-    repositories {
-        jcenter()
-    }
-
     dependencies {
-        classpath 'com.github.erizo.gradle:jcstress-gradle-plugin:0.8.8'
+        classpath 'io.github.reyerizo.gradle:jcstress-gradle-plugin:0.8.9'
     }
 }
 
 apply plugin: 'jcstress'
-
-repositories {
-    jcenter()
-}
 
 ```
 ### Tasks
