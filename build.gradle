@@ -103,8 +103,7 @@ afterReleaseBuild.dependsOn(publish, publishPlugins)
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            from components.java
+        pluginMaven(MavenPublication) {
             pom {
                 name = 'Jcstress gradle plugin'
                 description = 'This plugin integrates The Java Concurrency Stress tests with Gradle.'
@@ -144,7 +143,7 @@ publishing {
 }
 
 signing {
-    sign publishing.publications.mavenJava
+    sign publishing.publications.pluginMaven
 }
 
 pluginBundle {

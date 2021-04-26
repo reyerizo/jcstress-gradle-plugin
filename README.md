@@ -12,15 +12,9 @@ Add the following to your `build.gradle`:
 
 _build.gradle:_
 ```groovy
-
-buildscript {
-    dependencies {
-        classpath 'io.github.reyerizo.gradle:jcstress-gradle-plugin:0.8.9'
-    }
+plugins {
+    id "io.github.reyerizo.gradle:jcstress-gradle-plugin" version "0.8.10"
 }
-
-apply plugin: 'jcstress'
-
 ```
 ### Tasks
 
