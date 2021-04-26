@@ -6,18 +6,18 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'net.researchgate:gradle-release:2.7.0'
+        classpath 'net.researchgate:gradle-release:2.8.1'
     }
 }
 
 plugins {
     id 'jacoco'
     id 'java-gradle-plugin'
-    id 'com.github.kt3k.coveralls' version '2.6.3'
-    id 'com.gradle.plugin-publish' version '0.12.0'
+    id 'com.github.kt3k.coveralls' version '2.12.0'
+    id 'com.gradle.plugin-publish' version '0.14.0'
 }
 
-group 'com.github.reyerizo.gradle'
+group 'io.github.reyerizo.gradle'
 
 apply plugin: 'net.researchgate.release'
 apply plugin: 'groovy'
@@ -157,7 +157,7 @@ pluginBundle {
 gradlePlugin {
     plugins {
         jcstressGradlePlugin {
-            id = 'com.github.reyerizo.gradle.jcstress'
+            id = 'io.github.reyerizo.gradle.jcstress'
             displayName = 'Jcstress gradle plugin'
             description = 'This plugin integrates The Java Concurrency Stress tests with Gradle.'
             implementationClass = 'com.github.erizo.gradle.JcstressPlugin'
