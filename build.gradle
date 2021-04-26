@@ -24,7 +24,6 @@ apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
 apply plugin: "com.gradle.plugin-publish"
-apply plugin: 'maven'
 apply plugin: 'signing'
 
 sourceCompatibility = 1.8
@@ -36,6 +35,14 @@ repositories {
     mavenCentral()
     mavenLocal()
     jcenter()
+}
+
+if (!project.hasProperty('ossrhUsername')) ext.ossrhUsername = '**undefined**'
+if (!project.hasProperty('ossrhPassword')) ext.ossrhPassword = '**undefined**'
+
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
 sourceSets {
@@ -92,107 +99,52 @@ dependencies {
     testRuntimeOnly files(createClasspathManifest)
 }
 
-task javadocJar(type: Jar) {
-    archiveClassifier = 'javadoc'
-    from javadoc
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts {
-    archives javadocJar, sourcesJar
-}
-
-signing {
-    sign configurations.archives
-}
+afterReleaseBuild.dependsOn(publish, publishPlugins)
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
             from components.java
-            artifact sourcesJar
+            pom {
+                name = 'Jcstress gradle plugin'
+                description = 'This plugin integrates The Java Concurrency Stress tests with Gradle.'
+                url = 'https://github.com/reyerizo/jcstress-gradle-plugin'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'jerzykrlk'
+                        name = 'Jerzy Krolak'
+                    }
+                }
+                scm {
+                    connection = 'https://github.com/reyerizo/jcstress-gradle-plugin.git'
+                    developerConnection = 'https://github.com/reyerizo/jcstress-gradle-plugin.git'
+                    url = 'https://github.com/reyerizo/jcstress-gradle-plugin/tree/master'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username "${ossrhUsername}"
+                password "${ossrhPassword}"
+            }
         }
     }
 }
 
-afterReleaseBuild.dependsOn(uploadArchives, publishPlugins)
-
-//bintray {
-//    user = System.properties['bintray_user'] ? System.properties['bintray_user'] : ""
-//    key = System.properties['bintray_api_key'] ? System.properties['bintray_api_key'] : ""
-//    publications = ['mavenJava']
-//    dryRun = false
-//    publish = true
-//    pkg {
-//        repo = 'maven'
-//        name = 'jcstress-gradle-plugin'
-//        desc = 'Jcstress gradle plugin'
-//        websiteUrl = 'https://github.com/jerzykrlk/jcstress-gradle-plugin'
-//        issueTrackerUrl = 'https://github.com/jerzykrlk/jcstress-gradle-plugin'
-//        vcsUrl = 'https://github.com/jerzykrlk/jcstress-gradle-plugin.git'
-//        licenses = ['Apache-2.0']
-//        labels = ['jcstress', 'gradle', 'bintray']
-//        publicDownloadNumbers = true
-//        version {
-//            name = project.version //Bintray logical version name
-//            vcsTag = project.version
-//            mavenCentralSync {
-//                sync = false //Optional (true by default). Determines whether to sync the version to Maven Central.
-//                user = 'userToken'
-//                password = 'paasword'
-//                close = '1'
-//            }
-//        }
-//    }
-//}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-
-            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.project {
-                name 'Jcstress gradle plugin'
-                packaging 'jar'
-                // optionally artifactId can be defined here
-                description 'This plugin integrates The Java Concurrency Stress tests with Gradle.'
-                url 'https://github.com/reyerizo/jcstress-gradle-plugin'
-
-                scm {
-                    connection 'https://github.com/reyerizo/jcstress-gradle-plugin.git'
-                    developerConnection 'https://github.com/reyerizo/jcstress-gradle-plugin.git'
-                    url 'https://github.com/reyerizo/jcstress-gradle-plugin/tree/master'
-                }
-
-                licenses {
-                    license {
-                        name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'jerzykrlk'
-                        name 'Jerzy Krolak'
-                        email 'jerzy.erizo@gmail.com'
-                    }
-                }
-            }
-        }
-    }
+signing {
+    sign publishing.publications.mavenJava
 }
 
 pluginBundle {
