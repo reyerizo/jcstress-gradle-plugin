@@ -13,7 +13,7 @@ Add the following to your `build.gradle`:
 _build.gradle:_
 ```groovy
 plugins {
-    id "io.github.reyerizo.gradle:jcstress-gradle-plugin" version "0.8.10"
+    id "io.github.reyerizo.gradle.jcstress" version "0.8.10"
 }
 ```
 ### Tasks
