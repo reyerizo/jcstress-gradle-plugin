@@ -38,6 +38,8 @@ class JcstressPluginIncludeTestsSpec extends Specification {
     private BuildResult runGradleTask(String taskName) {
         GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
+                .forwardStdOutput(System.out.newPrintWriter())
+                .forwardStdError(System.err.newPrintWriter())
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
                 .withPluginClasspath(pluginClasspath)
                 .build()
