@@ -30,6 +30,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
@@ -38,10 +39,13 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -314,7 +318,7 @@ public class JcstressPlugin implements Plugin<Project> {
         DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
 
         Distribution distribution = distributions.create("jcstress");
-        distribution.setBaseName(jcstressApplicationName);
+        setDistributionBaseName(distribution);
         configureDistSpec(distribution.getContents());
 
         Sync installTask = project.getTasks().create(TASK_JCSTRESS_INSTALL_NAME, Sync.class);
@@ -325,6 +329,33 @@ public class JcstressPlugin implements Plugin<Project> {
         installTask.into(project.file(project.getBuildDir() + "/install/" + jcstressApplicationName));
 
         return installTask;
+    }
+
+    private void setDistributionBaseName(Distribution distribution) {
+        if (GradleVersion.current().compareTo(GradleVersion.version("7.0")) >= 0) {
+            setGradle7BaseName(distribution);
+        } else {
+            setGradle6BaseName(distribution);
+        }
+    }
+
+    private void setGradle7BaseName(Distribution distribution) {
+        try {
+            Method method = Distribution.class.getDeclaredMethod("getDistributionBaseName");
+            Property<String> distributionBaseName = (Property<String>) method.invoke(distribution);
+            distributionBaseName.set(jcstressApplicationName);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalStateException("Failed to set distribution base name", e);
+        }
+    }
+
+    private void setGradle6BaseName(Distribution distribution) {
+        try {
+            Method method = Distribution.class.getDeclaredMethod("setBaseName", String.class);
+            method.invoke(distribution, jcstressApplicationName);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalStateException("Failed to set distribution base name", e);
+        }
     }
 
     private void configureDistSpec(CopySpec distSpec) {
