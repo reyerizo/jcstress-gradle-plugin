@@ -11,6 +11,7 @@ import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 import spock.lang.Specification
 
@@ -203,7 +204,7 @@ class JcstressPluginSpec extends Specification {
         project.tasks.jcstress.args = ["asdf"]
         project.evaluate()
         def jcstressTask = project.tasks['jcstress'] as JcstressTask
-        jcstressTask.getActions().forEach({action -> action.execute(jcstressTask)})
+        jcstressTask.getActions().forEach({ action -> action.execute(jcstressTask) })
 
         then:
         jcstressTask.args.containsAll(['asdf', '-f', '30', '-time', '200'])
@@ -494,6 +495,19 @@ class JcstressPluginSpec extends Specification {
     def "should extract file name from Gradle dependency"() {
         expect:
         plugin.getFileNameFromDependency('com.github.reyerizo.gradle:jcstress-core:1.0-20160519191500') == "jcstress-core-1.0-20160519191500.jar"
+    }
+
+    def "should get the right Gradle version hierarchy"() {
+        when:
+        def gradle10 = GradleVersion.version("10.0.0")
+        def gradle7 = GradleVersion.version("7.0.0")
+        def gradle5 = GradleVersion.version("5.5.0")
+        then:
+        verifyAll {
+            gradle10.compareTo(gradle5) > 0
+            gradle10.compareTo(gradle7) > 0
+            gradle5.compareTo(gradle7) < 0
+        }
     }
 
     static DefaultProject createRootProject() {
