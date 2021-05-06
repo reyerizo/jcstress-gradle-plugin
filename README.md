@@ -1,8 +1,9 @@
 # Jcstress Gradle Plugin
 
-<nobr>[![Build Status](https://travis-ci.com/reyerizo/jcstress-gradle-plugin.svg?branch=master)](https://travis-ci.com/github/reyerizo/jcstress-gradle-plugin)
+[![Maven Status](https://maven-badges.herokuapp.com/maven-central/io.github.reyerizo.gradle/jcstress-gradle-plugin/badge.svg?style=flat)](https://mvnrepository.com/artifact/io.github.reyerizo.gradle/jcstress-gradle-plugin)
+[![Build Status](https://travis-ci.com/reyerizo/jcstress-gradle-plugin.svg?branch=master)](https://travis-ci.com/github/reyerizo/jcstress-gradle-plugin)
 [![Coverage Status](https://coveralls.io/repos/github/reyerizo/jcstress-gradle-plugin/badge.svg?branch=master)](https://coveralls.io/github/reyerizo/jcstress-gradle-plugin?branch=master)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)</nobr>
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 This plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.net/projects/code-tools/jcstress) with Gradle.
 
