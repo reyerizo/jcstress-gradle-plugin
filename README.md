@@ -41,7 +41,7 @@ If you need to customize the configuration, add a block like the following to co
 jcstress {
     verbose = true
     timeMillis = "200"
-    yield = true
+    spinStyle = "THREAD_YIELD"
 }
 ```
 
@@ -62,7 +62,7 @@ These are all possible configuration options:
 | `regexp`   | Regexp selector for tests. |
 | `timeMillis`   | Time to spend in single test iteration. Larger value improves test reliability, since schedulers do better job in the long run. |
 | `verbose`   | Be extra verbose. |
-| `yield`   | Call `Thread.yield()` in busy loops. |
+| `spinStyle`   | `HARD` = hard busy loop; `THREAD_YIELD` = use `Thread.yield()`; `THREAD_SPIN_WAIT` = use `Thread`.`onSpinWait()`; `LOCKSUPPORT_PARK_NANOS` = use `LockSupport.parkNanos()`. |
 
 More options are available, but you probably won't need them:
 
