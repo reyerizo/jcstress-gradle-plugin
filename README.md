@@ -88,4 +88,5 @@ jcstress {
 
 ### Notes
 
-This plugin is heavily based on [jmh-gradle-plugin](https://github.com/melix/jmh-gradle-plugin) and should behave in a similar way.
+- This plugin is heavily based on [jmh-gradle-plugin](https://github.com/melix/jmh-gradle-plugin) and should behave in a similar way.
+- At the moment, jcstress-0.9 and newer are not supported.
