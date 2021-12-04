@@ -1,8 +1,0 @@
-language: java
-
-script: ./gradlew clean build iT
-
-jdk: openjdk11
-
-after_success:
-- ./gradlew jacocoTestReport coveralls
