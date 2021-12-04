@@ -34,7 +34,6 @@ compileGroovy.options.encoding = 'UTF-8'
 repositories {
     mavenCentral()
     mavenLocal()
-    jcenter()
 }
 
 if (!project.hasProperty('ossrhUsername')) ext.ossrhUsername = '**undefined**'
@@ -89,6 +88,10 @@ task createClasspathManifest {
 dependencies {
     implementation localGroovy()
     implementation gradleApi()
+    implementation gradleApi()
+
+    testImplementation group: 'org.openjdk.jcstress', name: 'jcstress-core', version: '0.11'
+    integrationImplementation group: 'org.openjdk.jcstress', name: 'jcstress-core', version: '0.11'
 
     testImplementation('org.spockframework:spock-core:1.3-groovy-2.4') {
         exclude(module: 'groovy-all')
