@@ -332,7 +332,7 @@ class JcstressPluginSpec extends Specification {
     def "should add jcstress dependencies to jcstress configuration"() {
         given:
         plugin.apply(project)
-        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.7')
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.8')
 
         when:
         project.evaluate()
@@ -345,7 +345,7 @@ class JcstressPluginSpec extends Specification {
         given:
         project.getConfigurations().create("kaptJcstress")
         plugin.apply(project)
-        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.7')
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.8')
 
         when:
         project.evaluate()
@@ -358,7 +358,7 @@ class JcstressPluginSpec extends Specification {
     def "should add jcstress dependencies to annotation processor if no kapt available"() {
         given:
         plugin.apply(project)
-        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.7')
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.8')
 
         when:
         project.evaluate()
