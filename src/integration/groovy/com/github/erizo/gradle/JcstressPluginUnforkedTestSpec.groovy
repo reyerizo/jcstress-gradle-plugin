@@ -39,9 +39,9 @@ class JcstressPluginUnforkedTestSpec extends Specification {
         GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
-                .withPluginClasspath(pluginClasspath)
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
+                .withPluginClasspath(pluginClasspath)
                 .withDebug(true)
                 .build()
     }

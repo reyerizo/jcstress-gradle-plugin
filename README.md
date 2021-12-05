@@ -1,7 +1,7 @@
 # Jcstress Gradle Plugin
 
 [![Maven Status](https://maven-badges.herokuapp.com/maven-central/io.github.reyerizo.gradle/jcstress-gradle-plugin/badge.svg?style=flat)](https://mvnrepository.com/artifact/io.github.reyerizo.gradle/jcstress-gradle-plugin)
-[![Build Status](https://travis-ci.com/reyerizo/jcstress-gradle-plugin.svg?branch=master)](https://travis-ci.com/github/reyerizo/jcstress-gradle-plugin)
+[![Build Status](https://github.com/reyerizo/jcstress-gradle-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/reyerizo/jcstress-gradle-plugin/actions/workflows/gradle.yml)
 [![Coverage Status](https://coveralls.io/repos/github/reyerizo/jcstress-gradle-plugin/badge.svg?branch=master)](https://coveralls.io/github/reyerizo/jcstress-gradle-plugin?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
@@ -78,7 +78,7 @@ src/jcstress/java       // java sources
 src/jcstress/resources  // resources
 ```
 
-By default, the plugin uses `jcstress-core-0.7`. This can be easily changed with the following:
+By default, the plugin uses `jcstress-core-0.8`. This can be easily changed with the following:
 
 ```groovy
 jcstress {
@@ -88,4 +88,5 @@ jcstress {
 
 ### Notes
 
-This plugin is heavily based on [jmh-gradle-plugin](https://github.com/melix/jmh-gradle-plugin) and should behave in a similar way.
+- This plugin is heavily based on [jmh-gradle-plugin](https://github.com/melix/jmh-gradle-plugin) and should behave in a similar way.
+- At the moment, jcstress-0.9 and newer are not supported.

@@ -34,7 +34,6 @@ compileGroovy.options.encoding = 'UTF-8'
 repositories {
     mavenCentral()
     mavenLocal()
-    jcenter()
 }
 
 if (!project.hasProperty('ossrhUsername')) ext.ossrhUsername = '**undefined**'
