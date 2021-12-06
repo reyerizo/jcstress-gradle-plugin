@@ -4,3 +4,7 @@
 /*.iml
 /classes
 /out
+/.settings
+/.project
+/.classpath
+/bin

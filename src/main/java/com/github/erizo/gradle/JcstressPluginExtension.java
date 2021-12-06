@@ -29,7 +29,7 @@ public class JcstressPluginExtension {
     private String regexp;
     private String timeMillis;
     private String verbose;
-    private String yield;
+    private String spinStyle;
 
     public JcstressPluginExtension(final Project project) {
         this.project = project;
@@ -50,7 +50,7 @@ public class JcstressPluginExtension {
         addParameter(result, "-t", regexp);
         addParameter(result, "-time", timeMillis);
         addParameter(result, "-v", verbose);
-        addParameter(result, "-yield", yield);
+        addParameter(result, "-spinStyle", spinStyle);
         return result;
     }
 
@@ -200,11 +200,11 @@ public class JcstressPluginExtension {
         this.verbose = verbose;
     }
 
-    public String getYield() {
-        return yield;
+    public String getSpinStyle() {
+        return spinStyle;
     }
 
-    public void setYield(String yield) {
-        this.yield = yield;
+    public void setSpinStyle(String spinStyle) {
+        this.spinStyle = spinStyle;
     }
 }
