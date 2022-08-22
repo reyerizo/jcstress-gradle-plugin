@@ -71,6 +71,7 @@ idea {
 task integrationTest(type: Test) {
     testClassesDirs = sourceSets.integration.output.classesDirs
     classpath = sourceSets.integration.runtimeClasspath
+    useJUnitPlatform()
 }
 
 task createClasspathManifest {
@@ -83,6 +84,10 @@ task createClasspathManifest {
         outputDir.mkdirs()
         file("$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\n")
     }
+}
+
+rootProject.tasks.named("processIntegrationResources") {
+    duplicatesStrategy = 'include'
 }
 
 dependencies {
@@ -186,5 +191,8 @@ task createPluginClasspath {
     }
 }
 
-test.dependsOn(['createPluginClasspath'])
+test {
+    useJUnitPlatform()
+    dependsOn('createPluginClasspath')
+}
 
