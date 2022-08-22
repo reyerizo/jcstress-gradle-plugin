@@ -2,6 +2,7 @@ package com.github.erizo.gradle
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.distribution.plugins.DistributionPlugin
+import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.plugins.GroovyPlugin
 import org.gradle.api.plugins.JavaPlugin
@@ -68,10 +69,14 @@ class JcstressPluginSpec extends Specification {
         project.apply(plugin: GroovyPlugin)
         plugin.apply(project)
 
+        def javaSourceSet = project.sourceSets.jcstress.java as DefaultSourceDirectorySet
+        def groovySourceSet = project.sourceSets.jcstress.groovy as DefaultSourceDirectorySet
+        def resourcesSourceSet = project.sourceSets.jcstress.resources as DefaultSourceDirectorySet
+
         then:
-        project.sourceSets.jcstress.java.source == ['src/jcstress/java']
-        project.sourceSets.jcstress.groovy.source == ['src/jcstress/groovy']
-        project.sourceSets.jcstress.resources.source == ['src/jcstress/resources']
+        javaSourceSet.source == ['src/jcstress/java']
+        groovySourceSet.source == ['src/jcstress/groovy']
+        resourcesSourceSet.source == ['src/jcstress/resources']
     }
 
     def "should add jcstress configuration"() {
