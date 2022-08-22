@@ -47,6 +47,30 @@ class JcstressPluginCompatibleVersionsSpec extends Specification {
         result.task(":jcstress").outcome == TaskOutcome.SUCCESS
     }
 
+    def "should run with 7.5.1"() {
+        given:
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)
+
+        when:
+        def result = runGradleTask('7.5.1', 'jcstress')
+
+        then:
+        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "should run with 7.3.2"() {
+        given:
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)
+
+        when:
+        def result = runGradleTask('7.5.1', 'jcstress')
+
+        then:
+        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+    }
+
     def "should run with 5.6.4"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
