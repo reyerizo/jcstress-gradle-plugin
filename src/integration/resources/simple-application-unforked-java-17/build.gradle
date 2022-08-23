@@ -14,6 +14,12 @@ repositories {
     mavenLocal()
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(17))
+    }
+}
+
 jcstress {
     verbose = true
     timeMillis = "200"

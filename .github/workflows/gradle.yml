@@ -43,6 +43,4 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       - name: Build with Gradle
-        run: ./gradlew clean build iT -i --stacktrace
-      - name: Coverage
-        run: ./gradlew jacocoTestReport coveralls -i --stacktrace
+        run: ./gradlew integrationTest --tests JcstressPluginJava17Spec -i --stacktrace
