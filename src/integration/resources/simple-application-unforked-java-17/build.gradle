@@ -1,0 +1,22 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
+plugins {
+    id 'jcstress'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+jcstress {
+    verbose = true
+    timeMillis = "200"
+    forks = 1
+    iterations = 1
+}
