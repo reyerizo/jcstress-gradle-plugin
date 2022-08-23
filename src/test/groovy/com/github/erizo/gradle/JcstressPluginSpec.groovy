@@ -74,9 +74,9 @@ class JcstressPluginSpec extends Specification {
         def resourcesSourceSet = project.sourceSets.jcstress.resources as DefaultSourceDirectorySet
 
         then:
-        javaSourceSet.source == ['src/jcstress/java']
-        groovySourceSet.source == ['src/jcstress/groovy']
-        resourcesSourceSet.source == ['src/jcstress/resources']
+        javaSourceSet.name == 'java'
+        groovySourceSet.name == 'groovy'
+        resourcesSourceSet.name == 'resources'
     }
 
     def "should add jcstress configuration"() {
@@ -240,7 +240,7 @@ class JcstressPluginSpec extends Specification {
         }
 
         project.dependencies {
-            testCompile 'org.springframework:spring-core:4.0.0.RELEASE'
+            testImplementation 'org.springframework:spring-core:4.0.0.RELEASE'
         }
 
         when:
@@ -248,7 +248,7 @@ class JcstressPluginSpec extends Specification {
         def jcstressTask = project.tasks.jcstress
 
         then:
-        jcstressTask.classpath.files.containsAll(project.configurations.testCompile.files)
+        jcstressTask.classpath.files.containsAll(project.configurations.testCompileClasspath.files)
     }
 
     def "should not include tests in jcstress tasks if includeTests is false"() {
@@ -260,7 +260,7 @@ class JcstressPluginSpec extends Specification {
         }
 
         project.dependencies {
-            testCompile 'org.springframework:spring-core:4.0.0.RELEASE'
+            testImplementation 'org.springframework:spring-core:4.0.0.RELEASE'
         }
 
         when:
@@ -280,7 +280,7 @@ class JcstressPluginSpec extends Specification {
         }
 
         project.dependencies {
-            testCompile 'org.springframework:spring-core:4.0.0.RELEASE'
+            testImplementation 'org.springframework:spring-core:4.0.0.RELEASE'
         }
 
         when:
@@ -289,8 +289,8 @@ class JcstressPluginSpec extends Specification {
         def runtimeClasspath = project.sourceSets.jcstress.runtimeClasspath
 
         then:
-        compileClasspath.files.containsAll(project.configurations.testCompile.files)
-        runtimeClasspath.files.containsAll(project.configurations.testCompile.files)
+        compileClasspath.files.containsAll(project.configurations.testCompileClasspath.files)
+        runtimeClasspath.files.containsAll(project.configurations.testRuntimeClasspath.files)
     }
 
     def "should put jcstress results to temp dir"() {
@@ -393,13 +393,18 @@ class JcstressPluginSpec extends Specification {
 
     def "should not add jcstress dependencies to compile configuration"() {
         given:
-        def jcstressDependency = project.dependencies.create('com.github.reyerizo.gradle:jcstress-core:1.0-20160519191500')
+        def jcstressDependency = project.dependencies.create('org.openjdk.jcstress:jcstress-core:0.8')
 
         when:
         plugin.apply(project)
+        project.evaluate()
 
         then:
-        !getConfiguration("compile").allDependencies.contains(jcstressDependency)
+        verifyAll {
+            !getConfiguration("compileOnly").allDependencies.contains(jcstressDependency)
+            !getConfiguration("compileClasspath").allDependencies.contains(jcstressDependency)
+            getConfiguration("jcstressImplementation").allDependencies.contains(jcstressDependency)
+        }
     }
 
     def "should add jcstress configuration to test scope with Intellij plugin"() {
@@ -447,8 +452,8 @@ class JcstressPluginSpec extends Specification {
         plugin.apply(project)
 
         project.dependencies {
-            compile 'org.springframework:spring-core:4.0.0.RELEASE'
-            runtime 'org.springframework:spring-webmvc:4.0.0.RELEASE'
+            implementation 'org.springframework:spring-core:4.0.0.RELEASE'
+            runtimeOnly 'org.springframework:spring-webmvc:4.0.0.RELEASE'
         }
 
         when:
@@ -456,8 +461,10 @@ class JcstressPluginSpec extends Specification {
         def classpathFiles = project.tasks.jcstressScripts.classpath.files
 
         then:
-        classpathFiles.containsAll(project.configurations.runtime.files)
-        classpathFiles.containsAll(project.configurations.compile.files)
+        verifyAll {
+            classpathFiles.containsAll(project.configurations.compileClasspath.files)
+            classpathFiles.containsAll(project.configurations.runtimeClasspath.files)
+        }
     }
 
     def "should not include test in script task classpath if includeTests is not set"() {
@@ -465,7 +472,7 @@ class JcstressPluginSpec extends Specification {
         plugin.apply(project)
 
         project.dependencies {
-            testCompile 'org.springframework:spring-test:4.0.0.RELEASE'
+            testImplementation 'org.springframework:spring-test:4.0.0.RELEASE'
         }
 
         when:
@@ -473,7 +480,7 @@ class JcstressPluginSpec extends Specification {
         def classpathFiles = project.tasks.jcstressScripts.classpath.files
 
         then:
-        !classpathFiles.containsAll(project.configurations.testCompile.files)
+        !classpathFiles.containsAll(project.configurations.testCompileClasspath.files)
     }
 
     def "should include test in script task classpath if includeTests is true"() {
@@ -481,7 +488,7 @@ class JcstressPluginSpec extends Specification {
         plugin.apply(project)
 
         project.dependencies {
-            testCompile 'org.springframework:spring-test:4.0.0.RELEASE'
+            testImplementation 'org.springframework:spring-test:4.0.0.RELEASE'
         }
 
         project.jcstress {
@@ -493,7 +500,7 @@ class JcstressPluginSpec extends Specification {
         def classpathFiles = project.tasks.jcstressScripts.classpath.files
 
         then:
-        classpathFiles.containsAll(project.configurations.testCompile.files)
+        classpathFiles.containsAll(project.configurations.testCompileClasspath.files)
     }
 
     def "should extract file name from Gradle dependency"() {
