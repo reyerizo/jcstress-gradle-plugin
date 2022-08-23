@@ -3,24 +3,23 @@ package com.github.erizo.gradle
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import java.nio.file.Paths
 
 class JcstressPluginFunctionalSpec extends Specification {
 
-    @Rule
-    TemporaryFolder testProjectDir = new TemporaryFolder()
+    @TempDir
+    File testProjectDir
 
     def buildFile
     def settingsFile
     def pluginClasspath
 
     def setup() {
-        buildFile = testProjectDir.newFile('build.gradle')
-        settingsFile = testProjectDir.newFile('settings.gradle')
+        buildFile = new File(testProjectDir, 'build.gradle')
+        settingsFile = new File(testProjectDir, 'settings.gradle')
         pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
             new File(it)
         }
@@ -52,7 +51,7 @@ class JcstressPluginFunctionalSpec extends Specification {
 
     private BuildResult runGradleTask(String taskName) {
         GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir)
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
@@ -61,7 +60,7 @@ class JcstressPluginFunctionalSpec extends Specification {
     }
 
     private String getFileContents(String... pathElements) {
-        Paths.get(testProjectDir.root.toString(), pathElements).text
+        Paths.get(testProjectDir.toString(), pathElements).text
     }
 
     def buildFileContents =

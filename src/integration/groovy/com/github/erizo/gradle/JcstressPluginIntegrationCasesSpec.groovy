@@ -4,16 +4,16 @@ import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
-import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.TempDir
 
 import java.nio.file.Path
 import java.nio.file.Paths
 
 class JcstressPluginIntegrationCasesSpec extends Specification {
 
-    @Rule
-    MyTemporaryFolder testProjectDir = new MyTemporaryFolder()
+    @TempDir
+    File testProjectDir
 
     def pluginClasspath
 
@@ -26,7 +26,7 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
     def "should produce two separate jars"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-twojar").toURI()).toFile()
-        def projectRoot = testProjectDir.root
+        def projectRoot = testProjectDir
         FileUtils.copyDirectory(jcstressProjectRoot, projectRoot, false)
 
         when:
@@ -40,7 +40,7 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
     def "should not throw a null pointer on a new gradle and apisample"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-new-gradle-apisample").toURI()).toFile()
-        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('jcstress')
@@ -52,7 +52,7 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
     def "should not throw a null pointer on a new gradle, apisample and Kotlin"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-new-gradle-apisample-kt").toURI()).toFile()
-        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir.root, false)
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('jcstress')
@@ -67,7 +67,7 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
         arguments.addAll(['-i', '--stacktrace', '--refresh-dependencies'])
 
         GradleRunner.create()
-                .withProjectDir(testProjectDir.root)
+                .withProjectDir(testProjectDir)
                 .withGradleVersion("6.7")
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())

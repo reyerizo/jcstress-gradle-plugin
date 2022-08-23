@@ -71,6 +71,7 @@ idea {
 task integrationTest(type: Test) {
     testClassesDirs = sourceSets.integration.output.classesDirs
     classpath = sourceSets.integration.runtimeClasspath
+    useJUnitPlatform()
 }
 
 task createClasspathManifest {
@@ -85,15 +86,19 @@ task createClasspathManifest {
     }
 }
 
+rootProject.tasks.named("processIntegrationResources") {
+    duplicatesStrategy = 'include'
+}
+
 dependencies {
     implementation localGroovy()
     implementation gradleApi()
 
-    testImplementation('org.spockframework:spock-core:1.3-groovy-2.4') {
+    testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
         exclude(module: 'groovy-all')
     }
 
-    testImplementation 'commons-io:commons-io:2.4'
+    testImplementation 'commons-io:commons-io:2.11.0'
     testImplementation gradleTestKit()
     testRuntimeOnly files(createClasspathManifest)
 }
@@ -186,5 +191,8 @@ task createPluginClasspath {
     }
 }
 
-test.dependsOn(['createPluginClasspath'])
+test {
+    useJUnitPlatform()
+    dependsOn('createPluginClasspath')
+}
 
