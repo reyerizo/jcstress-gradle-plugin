@@ -12,8 +12,10 @@ import org.gradle.api.Project;
  */
 public class JcstressPluginExtension {
 
+    public static final String JCSTRESS_DEFAULT_VERSION = "0.15";
+
     private Project project;
-    private String jcstressDependency = "org.openjdk.jcstress:jcstress-core:0.8";
+    private String jcstressDependency = "org.openjdk.jcstress:jcstress-core:" + JCSTRESS_DEFAULT_VERSION;
     private String language = "en";
     private Boolean includeTests = false;
     private String concurrency;
@@ -57,8 +59,7 @@ public class JcstressPluginExtension {
     public static void addParameter(List<String> result, String param, String value) {
         if ("-v".equals(param) && "true".equals(value)) {
             result.add(param);
-        }
-        else if (value != null) {
+        } else if (value != null) {
             result.add(param);
             result.add(value);
         }

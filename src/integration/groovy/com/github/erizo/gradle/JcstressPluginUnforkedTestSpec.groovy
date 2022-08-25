@@ -30,8 +30,13 @@ class JcstressPluginUnforkedTestSpec extends Specification {
         when:
         def result = runGradleTask('jcstress')
 
+        def errorMessage = result.output.find('FATAL: (.*)')
+
         then:
-        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+        }
     }
 
     private BuildResult runGradleTask(String taskName) {
