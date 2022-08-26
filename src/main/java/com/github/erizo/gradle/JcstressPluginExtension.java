@@ -1,11 +1,9 @@
 package com.github.erizo.gradle;
 
+import org.gradle.api.Project;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.annotation.Nonnull;
-
-import org.gradle.api.Project;
 
 /**
  * @author jerzykrlk
@@ -18,20 +16,26 @@ public class JcstressPluginExtension {
     private String jcstressDependency = "org.openjdk.jcstress:jcstress-core:" + JCSTRESS_DEFAULT_VERSION;
     private String language = "en";
     private Boolean includeTests = false;
-    private String concurrency;
+    private String cpus;
     private String deoptRatio;
     private String forks;
+    private String forkMultiplier;
     private String iterations;
     private String jvmArgs;
+    private String jvmArgsPrepend;
+    private boolean list;
     private String mode;
-    private String maxStride;
-    private String minStride;
+    private String strideSize;
+    private String strideCount;
     private String reportDir;
     private String cpuCount;
     private String regexp;
     private String timeMillis;
     private String verbose;
     private String spinStyle;
+    private String heapPerFork;
+    private Boolean splitPerActor;
+    private String affinityMode;
 
     public JcstressPluginExtension(final Project project) {
         this.project = project;
@@ -39,20 +43,27 @@ public class JcstressPluginExtension {
 
     public List<String> buildArgs() {
         List<String> result = new ArrayList<>();
-        addParameter(result, "-c", concurrency);
+        addParameter(result, "-c", cpus);
         addParameter(result, "-deoptRatio", deoptRatio);
         addParameter(result, "-f", forks);
+        addParameter(result, "-fsm", forkMultiplier);
         addParameter(result, "-iters", iterations);
         addParameter(result, "-jvmArgs", jvmArgs);
+        addParameter(result, "-jvmArgsPrepend", jvmArgsPrepend);
+        if (this.list) {
+            addParameter(result, "-l", Boolean.toString(list));
+        }
         addParameter(result, "-m", mode);
-        addParameter(result, "-maxStride", maxStride);
-        addParameter(result, "-minStride", minStride);
+        addParameter(result, "-strideSize", strideSize);
+        addParameter(result, "-strideCount", strideCount);
         addParameter(result, "-r", reportDir);
-        addParameter(result, "-sc", cpuCount);
         addParameter(result, "-t", regexp);
         addParameter(result, "-time", timeMillis);
         addParameter(result, "-v", verbose);
         addParameter(result, "-spinStyle", spinStyle);
+        addParameter(result, "-hs", heapPerFork);
+        addParameter(result, "-sc", Boolean.toString(splitPerActor));
+        addParameter(result, "-af", affinityMode);
         return result;
     }
 
@@ -97,12 +108,20 @@ public class JcstressPluginExtension {
         this.includeTests = includeTests;
     }
 
-    public String getConcurrency() {
-        return concurrency;
+    public boolean isList() {
+        return list;
     }
 
-    public void setConcurrency(String concurrency) {
-        this.concurrency = concurrency;
+    public void setList(boolean list) {
+        this.list = list;
+    }
+
+    public String getCpus() {
+        return cpus;
+    }
+
+    public void setCpus(String cpus) {
+        this.cpus = cpus;
     }
 
     public String getDeoptRatio() {
@@ -145,20 +164,20 @@ public class JcstressPluginExtension {
         this.mode = mode;
     }
 
-    public String getMaxStride() {
-        return maxStride;
+    public String getStrideSize() {
+        return strideSize;
     }
 
-    public void setMaxStride(String maxStride) {
-        this.maxStride = maxStride;
+    public void setStrideSize(String strideSize) {
+        this.strideSize = strideSize;
     }
 
-    public String getMinStride() {
-        return minStride;
+    public String getStrideCount() {
+        return strideCount;
     }
 
-    public void setMinStride(String minStride) {
-        this.minStride = minStride;
+    public void setStrideCount(String strideCount) {
+        this.strideCount = strideCount;
     }
 
     public String getReportDir() {
@@ -207,5 +226,45 @@ public class JcstressPluginExtension {
 
     public void setSpinStyle(String spinStyle) {
         this.spinStyle = spinStyle;
+    }
+
+    public String getHeapPerFork() {
+        return heapPerFork;
+    }
+
+    public void setHeapPerFork(String heapPerFork) {
+        this.heapPerFork = heapPerFork;
+    }
+
+    public String getForkMultiplier() {
+        return forkMultiplier;
+    }
+
+    public void setForkMultiplier(String forkMultiplier) {
+        this.forkMultiplier = forkMultiplier;
+    }
+
+    public String getJvmArgsPrepend() {
+        return jvmArgsPrepend;
+    }
+
+    public void setJvmArgsPrepend(String jvmArgsPrepend) {
+        this.jvmArgsPrepend = jvmArgsPrepend;
+    }
+
+    public Boolean getSplitPerActor() {
+        return splitPerActor;
+    }
+
+    public void setSplitPerActor(Boolean splitPerActor) {
+        this.splitPerActor = splitPerActor;
+    }
+
+    public String getAffinityMode() {
+        return affinityMode;
+    }
+
+    public void setAffinityMode(String affinityMode) {
+        this.affinityMode = affinityMode;
     }
 }

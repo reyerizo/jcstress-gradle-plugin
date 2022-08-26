@@ -47,22 +47,22 @@ jcstress {
 
 These are all possible configuration options:
 
-| Name | Description |
-| --- | --- |
-| `concurrency` | Concurrency level for tests. This value can be greater than number of CPUs available. |
-| `deoptRatio` | De-optimize (roughly) every N-th iteration. Larger value improves test performance, but decreases the chance we hit unlucky compilation. |
-| `forks` | Should fork each test N times. `0` to run in the embedded mode with occasional forking, `-1` to never ever fork. |
-| `iterations`   | Iterations per test. |
-| `jvmArgs`   | Append these JVM arguments for the forked runs. |
-| `mode`   | Test mode preset: `sanity`, `quick`, `default`, `tough`, `stress`. |
-| `maxStride`   | Maximum internal stride size. Larger value decreases the synchronization overhead, but also reduces accuracy. |
-| `minStride`   | Minimum internal stride size. Larger value decreases the synchronization overhead, but also reduces accuracy. |
-| `reportDir`   | Target destination to put the report into. |
-| `cpuCount`   | Number of CPUs in the system. Setting this value overrides the autodetection. |
-| `regexp`   | Regexp selector for tests. |
-| `timeMillis`   | Time to spend in single test iteration. Larger value improves test reliability, since schedulers do better job in the long run. |
-| `verbose`   | Be extra verbose. |
-| `spinStyle`   | `HARD` = hard busy loop; `THREAD_YIELD` = use `Thread.yield()`; `THREAD_SPIN_WAIT` = use `Thread.onSpinWait()`; `LOCKSUPPORT_PARK_NANOS` = use `LockSupport.parkNanos()`. |
+| Name          | Description                                                                                                                                                                |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `cpus`        | Number of CPUs to use. Defaults to all CPUs in the system. Reducing the number of CPUs limits the amount of resources (including memory) the run is using.                 |
+| `heapPerFork` | Java heap size per fork, in megabytes. This affects the stride size: maximum footprint will never be exceeded, regardless of min/max stride sizes.                         |
+| `forks`       | Should fork each test N times. `0` to run in the embedded mode with occasional forking, `-1` to never ever fork.                                                           |
+| `iterations`  | Iterations per test.                                                                                                                                                       |
+| `jvmArgs`     | Append these JVM arguments for the forked runs.                                                                                                                            |
+| `mode`        | Test mode preset: `sanity`, `quick`, `default`, `tough`, `stress`.                                                                                                         |
+| `strideSize`  | Internal stride size. Larger value decreases the synchronization overhead, but also reduces the number of collisions.                                                      |
+| `strideCount` | Internal stride count per epoch. Larger value increases cache footprint.                                                                                                   |
+| `reportDir`   | Target destination to put the report into.                                                                                                                                 |
+| `cpuCount`    | Number of CPUs in the system. Setting this value overrides the autodetection.                                                                                              |
+| `regexp`      | Regexp selector for tests.                                                                                                                                                 |
+| `timeMillis`  | Time to spend in single test iteration. Larger value improves test reliability, since schedulers do better job in the long run.                                            |
+| `verbose`     | Be extra verbose.                                                                                                                                                          |
+| `spinStyle`   | `HARD` = hard busy loop; `THREAD_YIELD` = use `Thread.yield()`; `THREAD_SPIN_WAIT` = use `Thread.onSpinWait()`; `LOCKSUPPORT_PARK_NANOS` = use `LockSupport.parkNanos()`.  |
 
 More options are available, but you probably won't need them:
 
