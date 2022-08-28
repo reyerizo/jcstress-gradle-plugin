@@ -1,6 +1,7 @@
 package com.github.erizo.gradle;
 
 import org.gradle.api.Project;
+import org.gradle.api.model.ReplacedBy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ public class JcstressPluginExtension {
     private String jcstressDependency = "org.openjdk.jcstress:jcstress-core:" + JCSTRESS_DEFAULT_VERSION;
     private String language = "en";
     private Boolean includeTests = false;
+    private String concurrency;
     private String deoptRatio;
     private String forks;
     private String forkMultiplier;
@@ -26,6 +28,8 @@ public class JcstressPluginExtension {
     private String mode;
     private String strideSize;
     private String strideCount;
+    private String maxStride;
+    private String minStride;
     private String reportDir;
     private boolean parse;
     private String cpuCount;
@@ -111,6 +115,17 @@ public class JcstressPluginExtension {
         this.includeTests = includeTests;
     }
 
+    @Deprecated
+    @ReplacedBy("cpuCount")
+    public String getConcurrency() {
+        return concurrency;
+    }
+
+    @Deprecated
+    public void setConcurrency(String concurrency) {
+        this.concurrency = concurrency;
+    }
+
     public boolean isList() {
         return list;
     }
@@ -119,10 +134,15 @@ public class JcstressPluginExtension {
         this.list = list;
     }
 
+    /**
+     * Completely removed from jcstress. No direct replacement.
+     */
+    @Deprecated
     public String getDeoptRatio() {
         return deoptRatio;
     }
 
+    @Deprecated
     public void setDeoptRatio(String deoptRatio) {
         this.deoptRatio = deoptRatio;
     }
@@ -157,6 +177,28 @@ public class JcstressPluginExtension {
 
     public void setMode(String mode) {
         this.mode = mode;
+    }
+
+    @Deprecated
+    @ReplacedBy("strideSize,strideCount")
+    public String getMaxStride() {
+        return maxStride;
+    }
+
+    @Deprecated
+    public void setMaxStride(String maxStride) {
+        this.maxStride = maxStride;
+    }
+
+    @Deprecated
+    @ReplacedBy("strideSize,strideCount")
+    public String getMinStride() {
+        return minStride;
+    }
+
+    @Deprecated
+    public void setMinStride(String minStride) {
+        this.minStride = minStride;
     }
 
     public String getStrideSize() {
