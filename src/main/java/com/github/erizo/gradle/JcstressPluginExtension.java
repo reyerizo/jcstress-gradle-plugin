@@ -16,7 +16,6 @@ public class JcstressPluginExtension {
     private String jcstressDependency = "org.openjdk.jcstress:jcstress-core:" + JCSTRESS_DEFAULT_VERSION;
     private String language = "en";
     private Boolean includeTests = false;
-    private String cpus;
     private String deoptRatio;
     private String forks;
     private String forkMultiplier;
@@ -28,13 +27,14 @@ public class JcstressPluginExtension {
     private String strideSize;
     private String strideCount;
     private String reportDir;
+    private boolean parse;
     private String cpuCount;
     private String regexp;
     private String timeMillis;
     private String verbose;
     private String spinStyle;
     private String heapPerFork;
-    private Boolean splitPerActor;
+    private boolean splitPerActor;
     private String affinityMode;
 
     public JcstressPluginExtension(final Project project) {
@@ -43,7 +43,7 @@ public class JcstressPluginExtension {
 
     public List<String> buildArgs() {
         List<String> result = new ArrayList<>();
-        addParameter(result, "-c", cpus);
+        addParameter(result, "-c", cpuCount);
         addParameter(result, "-deoptRatio", deoptRatio);
         addParameter(result, "-f", forks);
         addParameter(result, "-fsm", forkMultiplier);
@@ -57,6 +57,9 @@ public class JcstressPluginExtension {
         addParameter(result, "-strideSize", strideSize);
         addParameter(result, "-strideCount", strideCount);
         addParameter(result, "-r", reportDir);
+        if (this.parse) {
+            addParameter(result, "-p", "true");
+        }
         addParameter(result, "-t", regexp);
         addParameter(result, "-time", timeMillis);
         addParameter(result, "-v", verbose);
@@ -114,14 +117,6 @@ public class JcstressPluginExtension {
 
     public void setList(boolean list) {
         this.list = list;
-    }
-
-    public String getCpus() {
-        return cpus;
-    }
-
-    public void setCpus(String cpus) {
-        this.cpus = cpus;
     }
 
     public String getDeoptRatio() {
@@ -266,5 +261,13 @@ public class JcstressPluginExtension {
 
     public void setAffinityMode(String affinityMode) {
         this.affinityMode = affinityMode;
+    }
+
+    public boolean getParse() {
+        return parse;
+    }
+
+    public void setParse(boolean parse) {
+        this.parse = parse;
     }
 }
