@@ -47,22 +47,26 @@ jcstress {
 
 These are all possible configuration options:
 
-| Name | Description |
-| --- | --- |
-| `concurrency` | Concurrency level for tests. This value can be greater than number of CPUs available. |
-| `deoptRatio` | De-optimize (roughly) every N-th iteration. Larger value improves test performance, but decreases the chance we hit unlucky compilation. |
-| `forks` | Should fork each test N times. `0` to run in the embedded mode with occasional forking, `-1` to never ever fork. |
-| `iterations`   | Iterations per test. |
-| `jvmArgs`   | Append these JVM arguments for the forked runs. |
-| `mode`   | Test mode preset: `sanity`, `quick`, `default`, `tough`, `stress`. |
-| `maxStride`   | Maximum internal stride size. Larger value decreases the synchronization overhead, but also reduces accuracy. |
-| `minStride`   | Minimum internal stride size. Larger value decreases the synchronization overhead, but also reduces accuracy. |
-| `reportDir`   | Target destination to put the report into. |
-| `cpuCount`   | Number of CPUs in the system. Setting this value overrides the autodetection. |
-| `regexp`   | Regexp selector for tests. |
-| `timeMillis`   | Time to spend in single test iteration. Larger value improves test reliability, since schedulers do better job in the long run. |
-| `verbose`   | Be extra verbose. |
-| `spinStyle`   | `HARD` = hard busy loop; `THREAD_YIELD` = use `Thread.yield()`; `THREAD_SPIN_WAIT` = use `Thread.onSpinWait()`; `LOCKSUPPORT_PARK_NANOS` = use `LockSupport.parkNanos()`. |
+| Name               | Description                                                                                                                                                                                                              |
+|--------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `affinityMode`   | Use the specific affinity mode, if available. `NONE` = No affinity whatsoever; `GLOBAL` = Affnity for the entire JVM; `LOCAL` = Affinity for the individual actors.                                                      |
+| `cpuCount`       | Number of CPUs to use. Defaults to all CPUs in the system. Reducing the number of CPUs limits the amount of resources (including memory) the run is using.                                                               |
+| `heapPerFork`    | Java heap size per fork, in megabytes. This affects the stride size: maximum footprint will never be exceeded, regardless of min/max stride sizes.                                                                       |
+| `forkMultiplier` | "Fork multiplier for randomized/stress tests. This allows more efficient randomized testing, as each fork would use a different seed."                                                                                   |
+| `forks`          | Should fork each test N times. Must be 1 or higher.                                                                                                                                                                      |
+| `iterations`     | Iterations per test.                                                                                                                                                                                                     |
+| `jvmArgs`        | Use given JVM arguments. This disables JVM flags auto-detection, and runs only the single JVM mode. Either a single space-separated option line, or multiple options are accepted. This option only affects forked runs. |
+| `jvmArgsPrepend` | Prepend given JVM arguments to auto-detected configurations. This option only affects forked runs."                                                                                                                      |
+| `mode`           | Test mode preset: `sanity`, `quick`, `default`, `tough`, `stress`.                                                                                                                                                       |
+| `regexp`         | Regexp selector for tests.                                                                                                                                                                                               |
+| `reportDir`      | Target destination to put the report into.                                                                                                                                                                               |
+| `spinStyle`      | Busy loop wait style. `HARD` = hard busy loop; `THREAD_YIELD` = use `Thread.yield()`; `THREAD_SPIN_WAIT` = use `Thread.onSpinWait()`; `LOCKSUPPORT_PARK_NANOS` = use `LockSupport.parkNanos()`.                          |
+| `splitPerActor`  | Use split per-actor compilation mode, if available.                                                                                                                                                                      |
+| `strideCount`    | Internal stride count per epoch. Larger value increases cache footprint.                                                                                                                                                 |
+| `strideSize`     | Internal stride size. Larger value decreases the synchronization overhead, but also reduces the number of collisions.                                                                                                    |
+| `timeMillis`     | Time to spend in single test iteration. Larger value improves test reliability, since schedulers do better job in the long run.                                                                                          |
+| `verbose`        | Be extra verbose.                                                                                                                                                                                                        |
+
 
 More options are available, but you probably won't need them:
 
@@ -70,6 +74,14 @@ More options are available, but you probably won't need them:
 | --- | --- |
 | `language` | format numbers according to the given locale, eg `en`, `fr`, etc. Will default to `en`. If unsure, just leave as is) |
 
+Options deprecated - will be removed completely in the next version. In current version, they don't have any effect.
+
+| Name          | Description                                                                                                                                                                |
+|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `concurrency` | Number of CPUs to use. Defaults to all CPUs in the system. Reducing the number of CPUs limits the amount of resources (including memory) the run is using.                 |
+| `deoptratio`  | Java heap size per fork, in megabytes. This affects the stride size: maximum footprint will never be exceeded, regardless of min/max stride sizes.                         |
+| `maxStride`   | Should fork each test N times. `0` to run in the embedded mode with occasional forking, `-1` to never ever fork.                                                           |
+| `minStride`   | Iterations per test.                                                                                                                                                       |
 
 The plugin uses a separate location for `jcstress` files:
 
@@ -78,7 +90,7 @@ src/jcstress/java       // java sources
 src/jcstress/resources  // resources
 ```
 
-By default, the plugin uses `jcstress-core-0.8`. This can be easily changed with the following:
+By default, the plugin uses `jcstress-core-0.15`. This can be easily changed with the following:
 
 ```groovy
 jcstress {

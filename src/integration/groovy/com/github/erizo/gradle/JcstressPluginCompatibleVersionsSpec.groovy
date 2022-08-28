@@ -24,62 +24,93 @@ class JcstressPluginCompatibleVersionsSpec extends Specification {
 
     def "should run with 7.0"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('7.0', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
 
         then:
-        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
+
     }
 
     def "should run with 6.6.1"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('6.6.1', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
 
         then:
-        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
     }
 
     def "should run with 7.5.1"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('7.5.1', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
 
         then:
-        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
     }
 
     def "should run with 7.3.2"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('7.3.2', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
 
         then:
-        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
     }
 
     def "should run with 5.6.4"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('5.6.4', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
 
         then:
-        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
     }
 
     private BuildResult runGradleTask(String gradleVersion, String... taskNames) {

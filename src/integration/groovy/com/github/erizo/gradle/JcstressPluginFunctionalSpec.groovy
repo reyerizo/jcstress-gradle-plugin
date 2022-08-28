@@ -35,7 +35,7 @@ class JcstressPluginFunctionalSpec extends Specification {
         result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
 
         def fileText = getFileContents("build", "scripts", "myTestProject-jcstress")
-        fileText.contains("jcstress-core-0.8.jar")
+        fileText.contains("jcstress-core-0.15.jar")
     }
 
     def "should create a Windows script"() {
@@ -46,7 +46,7 @@ class JcstressPluginFunctionalSpec extends Specification {
         result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
 
         def fileText = getFileContents("build", "scripts", "myTestProject-jcstress.bat")
-        fileText.contains("jcstress-core-0.8.jar")
+        fileText.contains("jcstress-core-0.15.jar")
     }
 
     private BuildResult runGradleTask(String taskName) {

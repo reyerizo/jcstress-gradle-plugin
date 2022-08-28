@@ -99,6 +99,7 @@ dependencies {
     }
 
     testImplementation 'commons-io:commons-io:2.11.0'
+    testCompileOnly 'org.openjdk.jcstress:jcstress-core:0.15'
     testImplementation gradleTestKit()
     testRuntimeOnly files(createClasspathManifest)
 }

@@ -9,20 +9,17 @@ plugins {
     id 'jcstress'
 }
 
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
 repositories {
     mavenCentral()
     mavenLocal()
 }
 
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-}
-
 jcstress {
     verbose = true
     timeMillis = "200"
-    forks = 1
+    mode = "sanity"
     iterations = 1
 }

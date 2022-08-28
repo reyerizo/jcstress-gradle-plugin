@@ -29,9 +29,15 @@ class JcstressPluginIncludeTestsSpec extends Specification {
 
         when:
         def result = runGradleTask('jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
 
         then:
-        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
     }
 
     private BuildResult runGradleTask(String taskName) {

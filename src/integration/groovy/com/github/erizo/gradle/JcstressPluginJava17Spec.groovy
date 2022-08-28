@@ -24,14 +24,20 @@ class JcstressPluginJava17Spec extends Specification {
 
     def "should run with 7.5.1 and java 17"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked-java-17").toURI()).toFile()
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity-java-17").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('7.5.1', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
 
         then:
-        result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
     }
 
     private BuildResult runGradleTask(String gradleVersion, String... taskNames) {

@@ -17,7 +17,7 @@ plugins {
 jcstress {
     verbose = "true"
     timeMillis = "200"
-    forks = "0"
+    mode = "sanity"
     iterations = "1"
 }
 
