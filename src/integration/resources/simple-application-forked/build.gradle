@@ -21,4 +21,5 @@ jcstress {
     verbose = true
     timeMillis = "200"
     iterations = 1
+    forks = 1
 }

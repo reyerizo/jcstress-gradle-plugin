@@ -62,8 +62,8 @@ These are all possible configuration options:
 | `reportDir`      | Target destination to put the report into.                                                                                                                                                                               |
 | `spinStyle`      | Busy loop wait style. `HARD` = hard busy loop; `THREAD_YIELD` = use `Thread.yield()`; `THREAD_SPIN_WAIT` = use `Thread.onSpinWait()`; `LOCKSUPPORT_PARK_NANOS` = use `LockSupport.parkNanos()`.                          |
 | `splitPerActor`  | Use split per-actor compilation mode, if available.                                                                                                                                                                      |
-| `strideSize`     | Internal stride size. Larger value decreases the synchronization overhead, but also reduces the number of collisions.                                                                                                    |
 | `strideCount`    | Internal stride count per epoch. Larger value increases cache footprint.                                                                                                                                                 |
+| `strideSize`     | Internal stride size. Larger value decreases the synchronization overhead, but also reduces the number of collisions.                                                                                                    |
 | `timeMillis`     | Time to spend in single test iteration. Larger value improves test reliability, since schedulers do better job in the long run.                                                                                          |
 | `verbose`        | Be extra verbose.                                                                                                                                                                                                        |
 

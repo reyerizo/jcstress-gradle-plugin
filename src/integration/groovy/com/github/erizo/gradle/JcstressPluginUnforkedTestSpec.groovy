@@ -24,18 +24,20 @@ class JcstressPluginUnforkedTestSpec extends Specification {
 
     def "should complete an unforked run"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-unforked").toURI()).toFile()
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
 
         when:
         def result = runGradleTask('jcstress')
 
         def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
 
         then:
         verifyAll {
             result.task(":jcstress").outcome == TaskOutcome.SUCCESS
             errorMessage == null
+            runResults == 'RUN RESULTS'
         }
     }
 
