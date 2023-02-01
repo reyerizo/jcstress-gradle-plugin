@@ -14,7 +14,7 @@ Add the following to your `build.gradle`:
 _build.gradle:_
 ```groovy
 plugins {
-    id "io.github.reyerizo.gradle.jcstress" version "0.8.13"
+    id "io.github.reyerizo.gradle.jcstress" version "0.8.14"
 }
 ```
 ### Tasks
@@ -101,4 +101,3 @@ jcstress {
 ### Notes
 
 - This plugin is heavily based on [jmh-gradle-plugin](https://github.com/melix/jmh-gradle-plugin) and should behave in a similar way.
-- At the moment, jcstress-0.9 and newer are not supported.
