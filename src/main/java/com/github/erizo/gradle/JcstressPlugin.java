@@ -222,7 +222,7 @@ public class JcstressPlugin implements Plugin<Project> {
         final JcstressTask jcstressTask = project.getTasks().create(TASK_JCSTRESS_NAME, JcstressTask.class);
 
         jcstressTask.dependsOn(jcstressJarTask);
-        jcstressTask.setMain("org.openjdk.jcstress.Main");
+        jcstressTask.getMainClass().set("org.openjdk.jcstress.Main");
         jcstressTask.setGroup("Verification");
         jcstressTask.setDescription("Runs jcstress benchmarks.");
         jcstressTask.setJvmArgs(Arrays.asList("-XX:+UnlockDiagnosticVMOptions", "-XX:+WhiteBoxAPI", "-XX:-RestrictContended", "-Duser.language=" + jcstressPluginExtension.getLanguage()));
