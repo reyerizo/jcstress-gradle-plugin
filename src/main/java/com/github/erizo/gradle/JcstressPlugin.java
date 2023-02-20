@@ -222,7 +222,7 @@ public class JcstressPlugin implements Plugin<Project> {
         final JcstressTask jcstressTask = project.getTasks().create(TASK_JCSTRESS_NAME, JcstressTask.class);
 
         jcstressTask.dependsOn(jcstressJarTask);
-        jcstressTask.setMain("org.openjdk.jcstress.Main");
+        setMainClass(jcstressTask);
         jcstressTask.setGroup("Verification");
         jcstressTask.setDescription("Runs jcstress benchmarks.");
         jcstressTask.setJvmArgs(Arrays.asList("-XX:+UnlockDiagnosticVMOptions", "-XX:+WhiteBoxAPI", "-XX:-RestrictContended", "-Duser.language=" + jcstressPluginExtension.getLanguage()));
@@ -260,6 +260,16 @@ public class JcstressPlugin implements Plugin<Project> {
         });
 
         return jcstressTask;
+    }
+
+    private void setMainClass(JcstressTask jcstressTask) {
+        if (GradleVersion.current().compareTo(GradleVersion.version("8.0")) >= 0) {
+            jcstressTask.getMainClass().set("org.openjdk.jcstress.Main");
+        } else {
+            jcstressTask.setMain("org.openjdk.jcstress.Main");
+        }
+
+
     }
 
     private CreateStartScripts addCreateStartScriptsTask() {

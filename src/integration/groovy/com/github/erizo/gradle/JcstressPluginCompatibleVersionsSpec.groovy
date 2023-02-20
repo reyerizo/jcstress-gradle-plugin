@@ -76,6 +76,23 @@ class JcstressPluginCompatibleVersionsSpec extends Specification {
             runResults == 'RUN RESULTS'
         }
     }
+    def "should run with 8.0.1"() {
+        given:
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
+
+        when:
+        def result = runGradleTask('8.0.1', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
+
+        then:
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
+    }
 
     def "should run with 7.3.2"() {
         given:
