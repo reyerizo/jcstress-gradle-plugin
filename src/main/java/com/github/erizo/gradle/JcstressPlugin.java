@@ -363,7 +363,7 @@ public class JcstressPlugin implements Plugin<Project> {
             jcstressTask.getMainClass().set("org.openjdk.jcstress.Main");
         } else {
             try {
-                Method setMainMethod = JcstressTask.class.getDeclaredMethod("setMain", String.class);
+                Method setMainMethod = JcstressTask.class.getMethod("setMain", String.class);
                 setMainMethod.invoke(jcstressTask, "org.openjdk.jcstress.Main");
             } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                 throw new IllegalStateException("Failed to set main class to [org.openjdk.jcstress.Main]", e);
