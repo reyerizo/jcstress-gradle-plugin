@@ -222,7 +222,7 @@ public class JcstressPlugin implements Plugin<Project> {
         final JcstressTask jcstressTask = project.getTasks().create(TASK_JCSTRESS_NAME, JcstressTask.class);
 
         jcstressTask.dependsOn(jcstressJarTask);
-        jcstressTask.setMain("org.openjdk.jcstress.Main");
+        setMainClass(jcstressTask);
         jcstressTask.setGroup("Verification");
         jcstressTask.setDescription("Runs jcstress benchmarks.");
         jcstressTask.setJvmArgs(Arrays.asList("-XX:+UnlockDiagnosticVMOptions", "-XX:+WhiteBoxAPI", "-XX:-RestrictContended", "-Duser.language=" + jcstressPluginExtension.getLanguage()));
@@ -357,6 +357,20 @@ public class JcstressPlugin implements Plugin<Project> {
             throw new IllegalStateException("Failed to set distribution base name", e);
         }
     }
+
+    private void setMainClass(JcstressTask jcstressTask) {
+        if (GradleVersion.current().compareTo(GradleVersion.version("8.0")) >= 0) {
+            jcstressTask.getMainClass().set("org.openjdk.jcstress.Main");
+        } else {
+            try {
+                Method setMainMethod = JcstressTask.class.getMethod("setMain", String.class);
+                setMainMethod.invoke(jcstressTask, "org.openjdk.jcstress.Main");
+            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+                throw new IllegalStateException("Failed to set main class to [org.openjdk.jcstress.Main]", e);
+            }
+        }
+    }
+
 
     private void configureDistSpec(CopySpec distSpec) {
         final Task jar = project.getTasks().getByName(TASK_JCSTRESS_JAR_NAME);
