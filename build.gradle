@@ -197,3 +197,9 @@ test {
     dependsOn('createPluginClasspath')
 }
 
+/**
+ * 1. gradlew clean build release
+ * 2. in Sonatype -> Staging Repositories, delete the io/github/reyerizo/gradle/jcstress/ branch
+ * 3. Close the repository,
+ * 4. Release the repository,
+ */
