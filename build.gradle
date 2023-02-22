@@ -180,6 +180,10 @@ jacocoTestReport {
     }
 }
 
+coveralls {
+    jacocoReportPath 'build/reports/jacoco/test/jacocoTestReport.xml'
+}
+
 task createPluginClasspath {
     def outputDir = file("${buildDir}/resources/test")
 
