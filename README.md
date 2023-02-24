@@ -9,7 +9,7 @@ This plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.n
 
 ### Usage
 
-Add the following to your `build.gradle`:
+1. Add the following to your `build.gradle`:
 
 _build.gradle:_
 ```groovy
@@ -17,6 +17,22 @@ plugins {
     id "io.github.reyerizo.gradle.jcstress" version "0.8.15"
 }
 ```
+
+2. Put your tests in `jcstress` sourceset:
+
+```
+/src/jcstress/java       // <--- JCStress code goes here
+/src/jcstress/resources  // <--- Resources go here
+
+/src/main/java           // <--- The rest of the app
+/src/main/resources      // <--- The rest of the app
+```
+
+3. for reference, check the sample project: 
+
+[https://github.com/reyerizo/jcstress-example](https://github.com/reyerizo/jcstress-example)
+
+
 ### Tasks
 
 Execute your tests with the following:
