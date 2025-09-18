@@ -14,7 +14,7 @@ plugins {
     id 'jacoco'
     id 'java-gradle-plugin'
     id 'com.github.kt3k.coveralls' version '2.12.0'
-    id 'com.gradle.plugin-publish' version '0.14.0'
+    id 'com.gradle.plugin-publish' version '1.1.0'
 }
 
 group 'io.github.reyerizo.gradle'
@@ -151,20 +151,16 @@ signing {
     sign publishing.publications.pluginMaven
 }
 
-pluginBundle {
+gradlePlugin {
     website = 'https://github.com/reyerizo/jcstress-gradle-plugin'
     vcsUrl = 'https://github.com/reyerizo/jcstress-gradle-plugin'
-    description = 'Jcstress gradle plugin'
-    tags = ['jcstress', 'gradle']
-}
-
-gradlePlugin {
     plugins {
         jcstressGradlePlugin {
             id = 'io.github.reyerizo.gradle.jcstress'
             displayName = 'Jcstress gradle plugin'
             description = 'This plugin integrates The Java Concurrency Stress tests with Gradle.'
             implementationClass = 'com.github.erizo.gradle.JcstressPlugin'
+            tags.set(['jcstress', 'gradle'])
         }
     }
 }
@@ -175,8 +171,8 @@ jacoco {
 
 jacocoTestReport {
     reports {
-        xml.enabled = true // coveralls plugin depends on xml format report
-        html.enabled = true
+        xml.required = true // coveralls plugin depends on xml format report
+        html.required = true
     }
 }
 
