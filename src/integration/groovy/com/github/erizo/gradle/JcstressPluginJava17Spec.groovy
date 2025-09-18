@@ -40,6 +40,25 @@ class JcstressPluginJava17Spec extends Specification {
         }
     }
 
+    def "should run with Gradle 9 and java 17"() {
+        given:
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity-java-17").toURI()).toFile()
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
+
+        when:
+        def result = runGradleTask('9.0.0', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
+
+        then:
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
+
+    }
+
     private BuildResult runGradleTask(String gradleVersion, String... taskNames) {
         def arguments = new ArrayList()
         arguments.addAll(taskNames)
