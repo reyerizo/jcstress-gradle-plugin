@@ -9,7 +9,7 @@ dependencies {
 }
 
 plugins {
-    id("jcstress")
+    id("io.github.reyerizo.gradle.jcstress")
     kotlin("jvm") version "1.4.21"
     kotlin("kapt") version "1.4.21"
 }

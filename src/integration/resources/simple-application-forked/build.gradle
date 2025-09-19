@@ -6,7 +6,7 @@ buildscript {
 }
 
 plugins {
-    id 'jcstress'
+    id 'io.github.reyerizo.gradle.jcstress'
 }
 
 sourceCompatibility = 1.8
