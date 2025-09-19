@@ -4,12 +4,14 @@ import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Requires
 import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.nio.file.Path
 import java.nio.file.Paths
 
+@Requires({ !jvm.java16Compatible }) // Java16 support was added in Gradle 7
 class JcstressPluginIntegrationCasesSpec extends Specification {
 
     @TempDir

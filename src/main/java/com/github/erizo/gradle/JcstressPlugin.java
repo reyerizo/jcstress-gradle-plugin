@@ -271,7 +271,13 @@ public class JcstressPlugin implements Plugin<Project> {
                 .plus(project.getConfigurations().getByName(JCSTRESS_SOURCESET_NAME + "RuntimeClasspath"))
                 .plus(mainRuntimeClasspath));
 
-        createStartScriptsTask.getMainClass().set("org.openjdk.jcstress.Main");
+        String mainClassName = "org.openjdk.jcstress.Main";
+        if(isAtLeastGradle("6.0")) {
+            createStartScriptsTask.getMainClass().set(mainClassName);
+        } else {
+            createStartScriptsTask.setMainClassName(mainClassName);
+        }
+
         createStartScriptsTask.setApplicationName(jcstressApplicationName);
         createStartScriptsTask.setOutputDir(new File(project.getBuildDir(), "scripts"));
         createStartScriptsTask.setDefaultJvmOpts(new ArrayList<>(Arrays.asList(
@@ -288,6 +294,10 @@ public class JcstressPlugin implements Plugin<Project> {
         });
 
         return createStartScriptsTask;
+    }
+
+    private static boolean isAtLeastGradle(String gradleVersion) {
+        return GradleVersion.current().compareTo(GradleVersion.version(gradleVersion)) >= 0;
     }
 
     private void configureInstallTasks(Sync installTask) {
@@ -333,7 +343,7 @@ public class JcstressPlugin implements Plugin<Project> {
     }
 
     private void setDistributionBaseName(Distribution distribution) {
-        if (GradleVersion.current().compareTo(GradleVersion.version("7.0")) >= 0) {
+        if (isAtLeastGradle("7.0")) {
             setGradle7BaseName(distribution);
         } else {
             setGradle6BaseName(distribution);
@@ -360,7 +370,7 @@ public class JcstressPlugin implements Plugin<Project> {
     }
 
     private void setMainClass(JcstressTask jcstressTask) {
-        if (GradleVersion.current().compareTo(GradleVersion.version("8.0")) >= 0) {
+        if (isAtLeastGradle("8.0")) {
             jcstressTask.getMainClass().set("org.openjdk.jcstress.Main");
         } else {
             try {
@@ -386,7 +396,7 @@ public class JcstressPlugin implements Plugin<Project> {
 
         copy.into("bin", cs -> {
             cs.from(startScripts);
-            if(GradleVersion.current().compareTo(GradleVersion.version("8.3")) >= 0) {
+            if(isAtLeastGradle("8.3")) {
                 cs.filePermissions(filePermissions -> {
                     filePermissions.unix(0755);
                 });
@@ -422,8 +432,13 @@ public class JcstressPlugin implements Plugin<Project> {
     }
 
     private SourceSetContainer getProjectSourceSets() {
-        JavaPluginExtension plugin = project.getExtensions().getByType(JavaPluginExtension.class);
-        return plugin.getSourceSets();
+        if(isAtLeastGradle("7.1")) {
+            JavaPluginExtension plugin = project.getExtensions().getByType(JavaPluginExtension.class);
+            return plugin.getSourceSets();
+        } else {
+            JavaPluginConvention convention = project.getConvention().getPlugin(JavaPluginConvention.class);
+            return convention.getSourceSets();
+        }
     }
 
     private void addDependency(Project project, String configurationName, String dependencyName) {

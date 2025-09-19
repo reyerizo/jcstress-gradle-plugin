@@ -66,13 +66,26 @@ idea {
     }
 }
 
-task integrationTest(type: Test) {
+task integrationTestJava11(type: Test) {
     testClassesDirs = sourceSets.integration.output.classesDirs
     classpath = sourceSets.integration.runtimeClasspath
     useJUnitPlatform()
     javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion = JavaLanguageVersion.of(11)
     }
+}
+
+task integrationTestJava17(type: Test) {
+    testClassesDirs = sourceSets.integration.output.classesDirs
+    classpath = sourceSets.integration.runtimeClasspath
+    useJUnitPlatform()
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+task integrationTest {
+    dependsOn(integrationTestJava11, integrationTestJava17)
 }
 
 task createClasspathManifest {
