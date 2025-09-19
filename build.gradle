@@ -26,9 +26,6 @@ apply plugin: 'idea'
 apply plugin: "com.gradle.plugin-publish"
 apply plugin: 'signing'
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
 compileGroovy.options.encoding = 'UTF-8'
 
 repositories {
@@ -40,6 +37,7 @@ if (!project.hasProperty('ossrhUsername')) ext.ossrhUsername = '**undefined**'
 if (!project.hasProperty('ossrhPassword')) ext.ossrhPassword = '**undefined**'
 
 java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
     withJavadocJar()
     withSourcesJar()
 }
@@ -72,6 +70,9 @@ task integrationTest(type: Test) {
     testClassesDirs = sourceSets.integration.output.classesDirs
     classpath = sourceSets.integration.runtimeClasspath
     useJUnitPlatform()
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
 }
 
 task createClasspathManifest {
