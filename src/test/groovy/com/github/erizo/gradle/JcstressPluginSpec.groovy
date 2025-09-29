@@ -60,8 +60,8 @@ class JcstressPluginSpec extends Specification {
         plugin.apply(project)
 
         then:
-        project.sourceSets.jcstress.java.source == ['src/jcstress/java']
-        project.sourceSets.jcstress.resources.source == ['src/jcstress/resources']
+        project.sourceSets.jcstress.java.srcDirs == [project.file('src/jcstress/java')] as Set
+        project.sourceSets.jcstress.resources.srcDirs == [project.file('src/jcstress/resources')] as Set
     }
 
     def "should add groovy source set if groovy plugin enabled"() {
@@ -427,7 +427,7 @@ class JcstressPluginSpec extends Specification {
         plugin.apply(project)
         project.evaluate()
 
-        def testSourceDirs = project.idea.module.testSourceDirs
+        def testSourceDirs = project.idea.module.testSources.files
         def jcstressSrcDirs = project.sourceSets.jcstress.java.srcDirs
 
         then:
