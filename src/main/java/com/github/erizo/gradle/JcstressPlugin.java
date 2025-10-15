@@ -28,8 +28,10 @@ import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -270,7 +272,7 @@ public class JcstressPlugin implements Plugin<Project> {
                 .plus(project.getConfigurations().getByName(JCSTRESS_SOURCESET_NAME + "RuntimeClasspath"))
                 .plus(mainRuntimeClasspath));
 
-        createStartScriptsTask.setMainClassName("org.openjdk.jcstress.Main");
+        createStartScriptsTask.getMainClass().set("org.openjdk.jcstress.Main");
         createStartScriptsTask.setApplicationName(jcstressApplicationName);
         createStartScriptsTask.setOutputDir(new File(project.getBuildDir(), "scripts"));
         createStartScriptsTask.setDefaultJvmOpts(new ArrayList<>(Arrays.asList(
@@ -385,7 +387,7 @@ public class JcstressPlugin implements Plugin<Project> {
 
         copy.into("bin", cs -> {
             cs.from(startScripts);
-            cs.setFileMode(0755);
+//            cs.setFileMode(0755);
         });
 
         distSpec.with(copy);
@@ -417,7 +419,7 @@ public class JcstressPlugin implements Plugin<Project> {
     }
 
     private SourceSetContainer getProjectSourceSets() {
-        JavaPluginConvention plugin = project.getConvention().getPlugin(JavaPluginConvention.class);
+        JavaPluginExtension plugin = project.getExtensions().findByType(JavaPluginExtension.class);
         return plugin.getSourceSets();
     }
 
