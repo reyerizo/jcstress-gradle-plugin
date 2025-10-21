@@ -33,7 +33,6 @@ jobs:
           name: Unit Tests
           path: build/test-results/**/TEST-*.xml
           reporter: java-junit
-          check_name: list-tests
   build-java-17:
 
     runs-on: ubuntu-latest
@@ -58,4 +57,3 @@ jobs:
           name: Unit Tests
           path: build/test-results/**/TEST-*.xml
           reporter: java-junit
-          check_name: list-tests
