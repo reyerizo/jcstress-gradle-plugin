@@ -26,7 +26,13 @@ jobs:
         run: ./gradlew clean build iT -i --stacktrace
       - name: Coverage
         run: ./gradlew jacocoTestReport coveralls -i --stacktrace
-
+      - name: Publish test results
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Unit Tests
+          path: build/test-results/**/TEST-*.xml
+          reporter: java-junit
   build-java-17:
 
     runs-on: ubuntu-latest
@@ -44,3 +50,10 @@ jobs:
         run: chmod +x gradlew
       - name: Build with Gradle
         run: ./gradlew integrationTest --tests JcstressPluginJava17Spec -i --stacktrace
+      - name: Publish test results
+        uses: dorny/test-reporter@v2
+        if: ${{ !cancelled() }}
+        with:
+          name: Unit Tests
+          path: build/test-results/**/TEST-*.xml
+          reporter: java-junit
