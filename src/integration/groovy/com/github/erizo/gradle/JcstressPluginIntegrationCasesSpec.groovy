@@ -80,7 +80,7 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
 
         GradleRunner.create()
                 .withProjectDir(testProjectDir)
-                .withGradleVersion("6.7")
+                .withGradleVersion("7.5")
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
                 .withArguments(arguments)
