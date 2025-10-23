@@ -14,7 +14,7 @@ This plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.n
 _build.gradle:_
 ```groovy
 plugins {
-    id "io.github.reyerizo.gradle.jcstress" version "0.8.15"
+    id "io.github.reyerizo.gradle.jcstress" version "0.9.0"
 }
 ```
 
