@@ -66,7 +66,7 @@ class JcstressPluginFunctionalSpec extends Specification {
     def buildFileContents =
             """
                 plugins {
-                    id 'jcstress'
+                    id 'io.github.reyerizo.gradle.jcstress'
                 }
 
                 repositories {

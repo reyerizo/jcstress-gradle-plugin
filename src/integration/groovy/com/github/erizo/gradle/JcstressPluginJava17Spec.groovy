@@ -4,11 +4,13 @@ import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
+import spock.lang.Requires
 import spock.lang.Specification
 import spock.lang.TempDir
 
 import java.nio.file.Paths
 
+@Requires({ jvm.java17Compatible && !jvm.java19Compatible }) // Java 19 support was added in Gradle 7.6
 class JcstressPluginJava17Spec extends Specification {
 
     @TempDir

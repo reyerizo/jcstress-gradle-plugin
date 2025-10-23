@@ -6,11 +6,8 @@ buildscript {
 }
 
 plugins {
-    id 'jcstress'
+    id 'io.github.reyerizo.gradle.jcstress'
 }
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
