@@ -178,7 +178,7 @@ gradlePlugin {
             displayName = 'Jcstress gradle plugin'
             description = 'This plugin integrates The Java Concurrency Stress tests with Gradle.'
             implementationClass = 'com.github.erizo.gradle.JcstressPlugin'
-            tags.set(['jcstress', 'gradle'])
+            tags.set(['jcstress'])
         }
     }
 }
