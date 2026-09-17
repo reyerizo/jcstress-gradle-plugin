@@ -14,7 +14,7 @@ This plugin integrates [The Java Concurrency Stress tests](http://openjdk.java.n
 _build.gradle:_
 ```groovy
 plugins {
-    id "io.github.reyerizo.gradle.jcstress" version "0.9.0"
+    id "io.github.reyerizo.gradle.jcstress" version "1.0.0"
 }
 ```
 
@@ -113,6 +113,13 @@ jcstress {
     jcstressDependency 'org.openjdk.jcstress:jcstress-core:0.x'
 }
 ```
+
+### What's new in 1.0.0
+
+- Gradle 9 is supported, and the build is verified up to Gradle 9.7.1.
+- The `jcstress` task works with the [configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html).
+- The default jcstress version is now 0.16.
+- **Breaking:** Gradle 7 and older are no longer supported. The minimum is now Gradle 8.0.
 
 ### Gradle compatibility
 

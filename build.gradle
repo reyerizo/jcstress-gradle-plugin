@@ -90,6 +90,13 @@ dependencies {
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+release {
+    git {
+        // gradle-release 3.x defaults this to 'main'
+        requireBranch.set('master')
+    }
+}
+
 afterReleaseBuild.dependsOn(publishPlugins)
 
 // The pom of this publication is what the Gradle Plugin Portal publishes alongside the jar.
