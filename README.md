@@ -1,6 +1,6 @@
 # Jcstress Gradle Plugin
 
-[![Maven Status](https://maven-badges.herokuapp.com/maven-central/io.github.reyerizo.gradle/jcstress-gradle-plugin/badge.svg?style=flat)](https://mvnrepository.com/artifact/io.github.reyerizo.gradle/jcstress-gradle-plugin)
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/io.github.reyerizo.gradle.jcstress)](https://plugins.gradle.org/plugin/io.github.reyerizo.gradle.jcstress)
 [![Build Status](https://github.com/reyerizo/jcstress-gradle-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/reyerizo/jcstress-gradle-plugin/actions/workflows/gradle.yml)
 [![Coverage Status](https://coveralls.io/repos/github/reyerizo/jcstress-gradle-plugin/badge.svg?branch=master)](https://coveralls.io/github/reyerizo/jcstress-gradle-plugin?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
