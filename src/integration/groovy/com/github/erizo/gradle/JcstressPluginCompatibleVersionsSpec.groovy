@@ -7,154 +7,54 @@ import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Requires
 import spock.lang.Specification
 import spock.lang.TempDir
+import spock.lang.Unroll
 
 import java.nio.file.Paths
 
+/**
+ * Covers the oldest supported Gradle release, and the newest release of every supported Gradle line.
+ */
 class JcstressPluginCompatibleVersionsSpec extends Specification {
 
     @TempDir
     File testProjectDir
 
-    def pluginClasspath
-
-    def setup() {
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
-    }
-
-    @Requires({ !jvm.java17Compatible }) // Java17 support was added in Gradle 7.3
-    def "should run with 7.0"() {
-        given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
-        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
-
-        when:
-        def result = runGradleTask('7.0', 'jcstress')
-        def errorMessage = result.output.find('FATAL: (.*)')
-        def runResults = result.output.find('RUN RESULTS')
-
-        then:
-        verifyAll {
-            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
-            errorMessage == null
-            runResults == 'RUN RESULTS'
-        }
-
-    }
-
-    @Requires({ !jvm.java16Compatible }) // Java16 support was added in Gradle 7
-    def "should run with 6.6.1"() {
-        given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
-        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
-
-        when:
-        def result = runGradleTask('6.6.1', 'jcstress')
-        def errorMessage = result.output.find('FATAL: (.*)')
-        def runResults = result.output.find('RUN RESULTS')
-
-        then:
-        verifyAll {
-            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
-            errorMessage == null
-            runResults == 'RUN RESULTS'
-        }
-    }
-
-    @Requires({ !jvm.java19Compatible }) // Java19 support was added in Gradle 7.6
-    def "should run with 7.5.1"() {
-        given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
-        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
-
-        when:
-        def result = runGradleTask('7.5.1', 'jcstress')
-        def errorMessage = result.output.find('FATAL: (.*)')
-        def runResults = result.output.find('RUN RESULTS')
-
-        then:
-        verifyAll {
-            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
-            errorMessage == null
-            runResults == 'RUN RESULTS'
-        }
-    }
-
     @Requires({ !jvm.java20Compatible }) // Java20 support was added in Gradle 8.3
     def "should run with 8.0.1"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
-        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
+        copySanityProject()
 
         when:
         def result = runGradleTask('8.0.1', 'jcstress')
-        def errorMessage = result.output.find('FATAL: (.*)')
-        def runResults = result.output.find('RUN RESULTS')
 
         then:
-        verifyAll {
-            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
-            errorMessage == null
-            runResults == 'RUN RESULTS'
-        }
+        verifyJcstressRan(result)
     }
 
-    @Requires({ jvm.java17Compatible })
-    def "should run with 9.0.0"() {
+    @Unroll
+    def "should run with #gradleVersion"() {
         given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
-        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
+        copySanityProject()
 
         when:
-        def result = runGradleTask('9.0.0', 'jcstress')
-        def errorMessage = result.output.find('FATAL: (.*)')
-        def runResults = result.output.find('RUN RESULTS')
+        def result = runGradleTask(gradleVersion, 'jcstress')
 
         then:
-        verifyAll {
-            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
-            errorMessage == null
-            runResults == 'RUN RESULTS'
-        }
+        verifyJcstressRan(result)
+
+        where:
+        gradleVersion << ['8.14.5', '9.0.0', '9.7.1']
     }
 
-    @Requires({ !jvm.java18Compatible }) // Java18 support was added in Gradle 7.5
-    def "should run with 7.3.2"() {
-        given:
-        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
-        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
-
-        when:
-        def result = runGradleTask('7.3.2', 'jcstress')
-        def errorMessage = result.output.find('FATAL: (.*)')
-        def runResults = result.output.find('RUN RESULTS')
-
-        then:
-        verifyAll {
-            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
-            errorMessage == null
-            runResults == 'RUN RESULTS'
-        }
+    private static void verifyJcstressRan(BuildResult result) {
+        assert result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+        assert result.output.find('FATAL: (.*)') == null
+        assert result.output.find('RUN RESULTS') == 'RUN RESULTS'
     }
 
-    @Requires({ !jvm.java13Compatible }) // Java13 support was added in Gradle 6
-    def "should run with 5.6.4"() {
-        given:
+    private void copySanityProject() {
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
         FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
-
-        when:
-        def result = runGradleTask('5.6.4', 'jcstress')
-        def errorMessage = result.output.find('FATAL: (.*)')
-        def runResults = result.output.find('RUN RESULTS')
-
-        then:
-        verifyAll {
-            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
-            errorMessage == null
-            runResults == 'RUN RESULTS'
-        }
     }
 
     private BuildResult runGradleTask(String gradleVersion, String... taskNames) {
@@ -168,7 +68,7 @@ class JcstressPluginCompatibleVersionsSpec extends Specification {
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
                 .withArguments(arguments)
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .build()
     }
 

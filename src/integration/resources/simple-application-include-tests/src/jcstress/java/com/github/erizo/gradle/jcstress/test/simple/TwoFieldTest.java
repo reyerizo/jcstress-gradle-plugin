@@ -9,10 +9,11 @@ import static org.openjdk.jcstress.annotations.Expect.ACCEPTABLE_INTERESTING;
 @JCStressTest
 @Description("Tests safeIncrementValue is threadsafe")
 @Outcome.Outcomes({
-        @Outcome(id = "[0, 0]", expect = ACCEPTABLE, desc = "Object not constructed yet"),
-        @Outcome(id = "[1, 0]", expect = ACCEPTABLE, desc = "Object half-way"),
-        @Outcome(id = "[1, 2]", expect = ACCEPTABLE, desc = "Object fully constructed"),
-        @Outcome(expect = ACCEPTABLE_INTERESTING, desc = "Reordered"),
+        @Outcome(id = "0, 0", expect = ACCEPTABLE, desc = "Object not constructed yet"),
+        @Outcome(id = "1, 0", expect = ACCEPTABLE, desc = "Object half-way"),
+        @Outcome(id = "1, 2", expect = ACCEPTABLE, desc = "Object fully constructed"),
+        @Outcome(id = "0, 2", expect = ACCEPTABLE_INTERESTING, desc = "Reordered"),
+        @Outcome(expect = ACCEPTABLE_INTERESTING, desc = "Unexpected result"),
 })
 @State()
 public class TwoFieldTest {

@@ -1,6 +1,6 @@
 # Jcstress Gradle Plugin
 
-[![Maven Status](https://maven-badges.herokuapp.com/maven-central/io.github.reyerizo.gradle/jcstress-gradle-plugin/badge.svg?style=flat)](https://mvnrepository.com/artifact/io.github.reyerizo.gradle/jcstress-gradle-plugin)
+[![Gradle Plugin Portal](https://img.shields.io/gradle-plugin-portal/v/io.github.reyerizo.gradle.jcstress)](https://plugins.gradle.org/plugin/io.github.reyerizo.gradle.jcstress)
 [![Build Status](https://github.com/reyerizo/jcstress-gradle-plugin/actions/workflows/gradle.yml/badge.svg)](https://github.com/reyerizo/jcstress-gradle-plugin/actions/workflows/gradle.yml)
 [![Coverage Status](https://coveralls.io/repos/github/reyerizo/jcstress-gradle-plugin/badge.svg?branch=master)](https://coveralls.io/github/reyerizo/jcstress-gradle-plugin?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
@@ -106,12 +106,44 @@ src/jcstress/java       // java sources
 src/jcstress/resources  // resources
 ```
 
-By default, the plugin uses `jcstress-core-0.15`. This can be easily changed with the following:
+By default, the plugin uses `jcstress-core-0.16`. This can be easily changed with the following:
 
 ```groovy
 jcstress {
     jcstressDependency 'org.openjdk.jcstress:jcstress-core:0.x'
 }
+```
+
+### Gradle compatibility
+
+The plugin requires **Gradle 8.0 or newer**, and is verified against the following versions:
+
+| Gradle  | Minimum JDK | jcstress | Note                            |
+|---------|-------------|----------|---------------------------------|
+| 8.0.1   | 8           | 0.16     | oldest supported release        |
+| 8.14.5  | 8           | 0.16     | latest 8.x, security fixes only |
+| 9.0.0   | 17          | 0.16     |                                 |
+| 9.7.1   | 17          | 0.16     | latest release                  |
+
+Gradle 9 and newer require Java 17 or later.
+
+Every row is verified against jcstress 0.16, the version the plugin depends on by default, and the
+newest one published. Other versions can be selected with `jcstressDependency`, but are not covered
+by the matrix.
+
+Support follows Gradle's own end-of-life policy, which covers the current and the previous major
+version. Gradle 7 and older reached end of life in July 2025; use plugin version 0.9.0 or earlier
+for those.
+
+The `jcstress` task is compatible with the [configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html).
+
+### Building the plugin
+
+The build itself runs on Gradle 9.7.1, and the integration tests use a JDK 17 toolchain, so JDK 17 or
+newer is needed to build the plugin.
+
+```
+./gradlew clean build integrationTest
 ```
 
 ### Notes

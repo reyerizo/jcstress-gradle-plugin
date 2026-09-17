@@ -29,9 +29,7 @@ import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
@@ -72,6 +70,7 @@ public class JcstressPlugin implements Plugin<Project> {
     private static final String TASK_JCSTRESS_INSTALL_NAME = "jcstressInstall";
     private static final String TASK_JCSTRESS_SCRIPTS_NAME = "jcstressScripts";
     public static final String KAPT_JCSTRESS_CONFIGURATION_NAME = "kaptJcstress";
+    private static final String JCSTRESS_MAIN_CLASS_NAME = "org.openjdk.jcstress.Main";
 
     private Project project;
 
@@ -223,21 +222,16 @@ public class JcstressPlugin implements Plugin<Project> {
         final JcstressTask jcstressTask = project.getTasks().create(TASK_JCSTRESS_NAME, JcstressTask.class);
 
         jcstressTask.dependsOn(jcstressJarTask);
-        setMainClass(jcstressTask);
+        jcstressTask.getMainClass().set(JCSTRESS_MAIN_CLASS_NAME);
         jcstressTask.setGroup("Verification");
         jcstressTask.setDescription("Runs jcstress benchmarks.");
         jcstressTask.setJvmArgs(Arrays.asList("-XX:+UnlockDiagnosticVMOptions", "-XX:+WhiteBoxAPI", "-XX:-RestrictContended", "-Duser.language=" + jcstressPluginExtension.getLanguage()));
         jcstressTask.setClasspath(jcstressConfiguration.plus(project.getConfigurations().getByName(JCSTRESS_SOURCESET_NAME + "RuntimeClasspath").plus(mainRuntimeClasspath)));
-        jcstressTask.doFirst(new Action<Task>() {
-            @Override
-            public void execute(Task task1) {
-                getAndCreateDirectory(project.getBuildDir(), "tmp", "jcstress");
-            }
-        });
+        jcstressTask.setWorkingDir(getAndCreateDirectory(getBuildDirectory(), "tmp", "jcstress"));
 
         project.afterEvaluate(project -> {
             if (jcstressPluginExtension.getReportDir() == null) {
-                jcstressPluginExtension.setReportDir(getAndCreateDirectory(project.getBuildDir(), "reports", "jcstress").getAbsolutePath());
+                jcstressPluginExtension.setReportDir(getAndCreateDirectory(getBuildDirectory(), "reports", "jcstress").getAbsolutePath());
             }
             jcstressTask.args(jcstressPluginExtension.buildArgs());
 
@@ -248,19 +242,24 @@ public class JcstressPlugin implements Plugin<Project> {
             if (jcstressPluginExtension.getIncludeTests()) {
                 jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(testRuntimeClasspath));
             }
-
-            File path = getAndCreateDirectory(project.getBuildDir(), "tmp", "jcstress");
-            jcstressTask.setWorkingDir(path);
         });
 
-        jcstressTask.doFirst(new Action<Task>() {
-            @Override
-            public void execute(Task task1) {
-                jcstressTask.args(jcstressTask.jcstressArgs());
-            }
-        });
+        jcstressTask.doFirst(new PrepareJcstressRun());
 
         return jcstressTask;
+    }
+
+    /**
+     * Reads nothing but the task itself, so that the action can be stored in the configuration cache.
+     * A named class rather than a lambda, because Gradle cannot track the implementation of a lambda.
+     */
+    private static final class PrepareJcstressRun implements Action<Task> {
+        @Override
+        public void execute(Task task) {
+            JcstressTask jcstressTask = (JcstressTask) task;
+            jcstressTask.getWorkingDir().mkdirs();
+            jcstressTask.args(jcstressTask.jcstressArgs());
+        }
     }
 
     private CreateStartScripts addCreateStartScriptsTask() {
@@ -271,15 +270,10 @@ public class JcstressPlugin implements Plugin<Project> {
                 .plus(project.getConfigurations().getByName(JCSTRESS_SOURCESET_NAME + "RuntimeClasspath"))
                 .plus(mainRuntimeClasspath));
 
-        String mainClassName = "org.openjdk.jcstress.Main";
-        if(isAtLeastGradle("6.0")) {
-            createStartScriptsTask.getMainClass().set(mainClassName);
-        } else {
-            createStartScriptsTask.setMainClassName(mainClassName);
-        }
+        createStartScriptsTask.getMainClass().set(JCSTRESS_MAIN_CLASS_NAME);
 
         createStartScriptsTask.setApplicationName(jcstressApplicationName);
-        createStartScriptsTask.setOutputDir(new File(project.getBuildDir(), "scripts"));
+        createStartScriptsTask.setOutputDir(new File(getBuildDirectory(), "scripts"));
         createStartScriptsTask.setDefaultJvmOpts(new ArrayList<>(Arrays.asList(
                 "-XX:+UnlockDiagnosticVMOptions",
                 "-XX:+WhiteBoxAPI",
@@ -301,8 +295,18 @@ public class JcstressPlugin implements Plugin<Project> {
     }
 
     private void configureInstallTasks(Sync installTask) {
-        installTask.doFirst(task -> {
-            File destinationDir = installTask.getDestinationDir();
+        installTask.doFirst(new VerifyInstallDirectory());
+        installTask.doLast(new MakeStartScriptsExecutable(jcstressApplicationName));
+    }
+
+    /**
+     * Named classes rather than lambdas, because Gradle cannot track the implementation of a lambda.
+     * They only hold plain values, so that they can be stored in the configuration cache.
+     */
+    private static final class VerifyInstallDirectory implements Action<Task> {
+        @Override
+        public void execute(Task task) {
+            File destinationDir = ((Sync) task).getDestinationDir();
             if (destinationDir.isDirectory()) {
                 if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, "bin").isDirectory()) {
                     throw new GradleException("The specified installation directory '" + destinationDir
@@ -311,25 +315,33 @@ public class JcstressPlugin implements Plugin<Project> {
                             + "Alternatively, choose a different installation directory.");
                 }
             }
-        });
+        }
+    }
 
-        installTask.doLast(task ->
-        {
-            Path bin = Paths.get(installTask.getDestinationDir().getAbsolutePath(), "bin", jcstressApplicationName);
+    private static final class MakeStartScriptsExecutable implements Action<Task> {
+        private final String applicationName;
+
+        private MakeStartScriptsExecutable(String applicationName) {
+            this.applicationName = applicationName;
+        }
+
+        @Override
+        public void execute(Task task) {
+            Path bin = Paths.get(((Sync) task).getDestinationDir().getAbsolutePath(), "bin", applicationName);
             try {
                 Set<PosixFilePermission> posixFilePermissions = PosixFilePermissions.fromString("ugo+x");
                 Files.setPosixFilePermissions(bin, posixFilePermissions);
             } catch (IOException e) {
                 throw new UncheckedIOException("Failed to update attributes of [" + bin + "]", e);
             }
-        });
+        }
     }
 
     private Sync addInstallAppTask() {
         DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
 
         Distribution distribution = distributions.create("jcstress");
-        setDistributionBaseName(distribution);
+        distribution.getDistributionBaseName().set(jcstressApplicationName);
         configureDistSpec(distribution.getContents());
 
         Sync installTask = project.getTasks().create(TASK_JCSTRESS_INSTALL_NAME, Sync.class);
@@ -337,49 +349,9 @@ public class JcstressPlugin implements Plugin<Project> {
         installTask.setDescription("Installs the project as a JVM application along with libs and OS specific scripts.");
         installTask.setGroup("Verification");
         installTask.with(distribution.getContents());
-        installTask.into(project.file(project.getBuildDir() + "/install/" + jcstressApplicationName));
+        installTask.into(new File(getBuildDirectory(), "install/" + jcstressApplicationName));
 
         return installTask;
-    }
-
-    private void setDistributionBaseName(Distribution distribution) {
-        if (isAtLeastGradle("7.0")) {
-            setGradle7BaseName(distribution);
-        } else {
-            setGradle6BaseName(distribution);
-        }
-    }
-
-    private void setGradle7BaseName(Distribution distribution) {
-        try {
-            Method method = Distribution.class.getDeclaredMethod("getDistributionBaseName");
-            Property<String> distributionBaseName = (Property<String>) method.invoke(distribution);
-            distributionBaseName.set(jcstressApplicationName);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("Failed to set distribution base name", e);
-        }
-    }
-
-    private void setGradle6BaseName(Distribution distribution) {
-        try {
-            Method method = Distribution.class.getDeclaredMethod("setBaseName", String.class);
-            method.invoke(distribution, jcstressApplicationName);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("Failed to set distribution base name", e);
-        }
-    }
-
-    private void setMainClass(JcstressTask jcstressTask) {
-        if (isAtLeastGradle("8.0")) {
-            jcstressTask.getMainClass().set("org.openjdk.jcstress.Main");
-        } else {
-            try {
-                Method setMainMethod = JcstressTask.class.getMethod("setMain", String.class);
-                setMainMethod.invoke(jcstressTask, "org.openjdk.jcstress.Main");
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new IllegalStateException("Failed to set main class to [org.openjdk.jcstress.Main]", e);
-            }
-        }
     }
 
 
@@ -397,15 +369,43 @@ public class JcstressPlugin implements Plugin<Project> {
         copy.into("bin", cs -> {
             cs.from(startScripts);
             if(isAtLeastGradle("8.3")) {
-                cs.filePermissions(filePermissions -> {
-                    filePermissions.unix(0755);
-                });
+                FilePermissionsSupport.setUnixPermissions(cs, 0755);
             } else {
-                cs.setFileMode(0755);
+                setGradle8FileMode(cs);
             }
         });
 
         distSpec.with(copy);
+    }
+
+    /**
+     * Keeps the references to {@code ConfigurableFilePermissions}, which was added in Gradle 8.3, in a
+     * separate class, so that they are only loaded when running with Gradle 8.3 or newer. Referring to
+     * the type from {@link JcstressPlugin} itself would break plugin instantiation on older Gradle versions.
+     */
+    private static final class FilePermissionsSupport {
+        private static void setUnixPermissions(CopySpec copySpec, int mode) {
+            copySpec.filePermissions(filePermissions -> filePermissions.unix(mode));
+        }
+    }
+
+    /**
+     * Sets the file mode through {@code CopySpec.setFileMode}, which was removed in Gradle 9.
+     */
+    private static void setGradle8FileMode(CopySpec copySpec) {
+        try {
+            Method method = CopySpec.class.getMethod("setFileMode", Integer.class);
+            method.invoke(copySpec, 0755);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+            throw new IllegalStateException("Failed to set the file mode of the jcstress scripts", e);
+        }
+    }
+
+    /**
+     * Reads the build directory without {@code Project.getBuildDir}, which is deprecated since Gradle 8.11.
+     */
+    private File getBuildDirectory() {
+        return project.getLayout().getBuildDirectory().get().getAsFile();
     }
 
     private static File getAndCreateDirectory(File dir, String... subdirectory) {
@@ -432,13 +432,7 @@ public class JcstressPlugin implements Plugin<Project> {
     }
 
     private SourceSetContainer getProjectSourceSets() {
-        if(isAtLeastGradle("7.1")) {
-            JavaPluginExtension plugin = project.getExtensions().getByType(JavaPluginExtension.class);
-            return plugin.getSourceSets();
-        } else {
-            JavaPluginConvention convention = project.getConvention().getPlugin(JavaPluginConvention.class);
-            return convention.getSourceSets();
-        }
+        return project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
     }
 
     private void addDependency(Project project, String configurationName, String dependencyName) {

@@ -443,7 +443,7 @@ class JcstressPluginSpec extends Specification {
 
         then:
         scriptTask instanceof CreateStartScripts
-        scriptTask.mainClassName == 'org.openjdk.jcstress.Main'
+        scriptTask.mainClass.get() == 'org.openjdk.jcstress.Main'
         scriptTask.applicationName == 'myjcstressproject-jcstress'
     }
 

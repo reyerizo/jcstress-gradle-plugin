@@ -15,14 +15,10 @@ class JcstressPluginFunctionalSpec extends Specification {
 
     def buildFile
     def settingsFile
-    def pluginClasspath
 
     def setup() {
         buildFile = new File(testProjectDir, 'build.gradle')
         settingsFile = new File(testProjectDir, 'settings.gradle')
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
         buildFile << buildFileContents
         settingsFile << settingsFileContents
     }
@@ -35,7 +31,7 @@ class JcstressPluginFunctionalSpec extends Specification {
         result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
 
         def fileText = getFileContents("build", "scripts", "myTestProject-jcstress")
-        fileText.contains("jcstress-core-0.15.jar")
+        fileText.contains("jcstress-core-${JcstressPluginExtension.JCSTRESS_DEFAULT_VERSION}.jar")
     }
 
     def "should create a Windows script"() {
@@ -46,7 +42,7 @@ class JcstressPluginFunctionalSpec extends Specification {
         result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
 
         def fileText = getFileContents("build", "scripts", "myTestProject-jcstress.bat")
-        fileText.contains("jcstress-core-0.15.jar")
+        fileText.contains("jcstress-core-${JcstressPluginExtension.JCSTRESS_DEFAULT_VERSION}.jar")
     }
 
     private BuildResult runGradleTask(String taskName) {
@@ -55,7 +51,7 @@ class JcstressPluginFunctionalSpec extends Specification {
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .build()
     }
 

@@ -2,29 +2,28 @@ buildscript {
     repositories {
         mavenLocal()
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url = "https://plugins.gradle.org/m2/"
         }
     }
     dependencies {
-        classpath 'net.researchgate:gradle-release:2.8.1'
+        classpath 'net.researchgate:gradle-release:3.1.0'
     }
 }
 
 plugins {
     id 'jacoco'
     id 'java-gradle-plugin'
-    id 'com.github.kt3k.coveralls' version '2.12.0'
-    id 'com.gradle.plugin-publish' version '1.1.0'
+    id 'com.github.kt3k.coveralls' version '2.12.2'
+    id 'com.gradle.plugin-publish' version '2.2.1'
 }
 
-group 'io.github.reyerizo.gradle'
+group = 'io.github.reyerizo.gradle'
 
 apply plugin: 'net.researchgate.release'
 apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
 apply plugin: "com.gradle.plugin-publish"
-apply plugin: 'signing'
 
 compileGroovy.options.encoding = 'UTF-8'
 
@@ -32,9 +31,6 @@ repositories {
     mavenCentral()
     mavenLocal()
 }
-
-if (!project.hasProperty('ossrhUsername')) ext.ossrhUsername = '**undefined**'
-if (!project.hasProperty('ossrhPassword')) ext.ossrhPassword = '**undefined**'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -52,6 +48,7 @@ sourceSets {
         }
 
         compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
     }
 }
 
@@ -66,42 +63,13 @@ idea {
     }
 }
 
-task integrationTestJava11(type: Test) {
-    testClassesDirs = sourceSets.integration.output.classesDirs
-    classpath = sourceSets.integration.runtimeClasspath
-    useJUnitPlatform()
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
-}
-
-task integrationTestJava17(type: Test) {
+task integrationTest(type: Test) {
     testClassesDirs = sourceSets.integration.output.classesDirs
     classpath = sourceSets.integration.runtimeClasspath
     useJUnitPlatform()
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(17)
     }
-}
-
-task integrationTest {
-    dependsOn(integrationTestJava11, integrationTestJava17)
-}
-
-task createClasspathManifest {
-    def outputDir = file("$buildDir/$name")
-
-    inputs.files sourceSets.main.runtimeClasspath
-    outputs.dir outputDir
-
-    doLast {
-        outputDir.mkdirs()
-        file("$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\n")
-    }
-}
-
-compileIntegrationGroovy {
-    dependsOn 'createPluginClasspath'
 }
 
 rootProject.tasks.named("processIntegrationResources") {
@@ -112,18 +80,19 @@ dependencies {
     implementation localGroovy()
     implementation gradleApi()
 
-    testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
+    testImplementation('org.spockframework:spock-core:2.3-groovy-4.0') {
         exclude(module: 'groovy-all')
     }
 
     testImplementation 'commons-io:commons-io:2.11.0'
-    testCompileOnly 'org.openjdk.jcstress:jcstress-core:0.15'
+    testCompileOnly 'org.openjdk.jcstress:jcstress-core:0.16'
     testImplementation gradleTestKit()
-    testRuntimeOnly files(createClasspathManifest)
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 afterReleaseBuild.dependsOn(publishPlugins)
 
+// The pom of this publication is what the Gradle Plugin Portal publishes alongside the jar.
 publishing {
     publications {
         pluginMaven(MavenPublication) {
@@ -151,27 +120,12 @@ publishing {
             }
         }
     }
-
-    repositories {
-        maven {
-            def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
-            def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            credentials {
-                username "${ossrhUsername}"
-                password "${ossrhPassword}"
-            }
-        }
-    }
-}
-
-signing {
-    sign publishing.publications.pluginMaven
 }
 
 gradlePlugin {
     website = 'https://github.com/reyerizo/jcstress-gradle-plugin'
     vcsUrl = 'https://github.com/reyerizo/jcstress-gradle-plugin'
+    testSourceSets(sourceSets.test, sourceSets.integration)
     plugins {
         jcstressGradlePlugin {
             id = 'io.github.reyerizo.gradle.jcstress'
@@ -184,7 +138,7 @@ gradlePlugin {
 }
 
 jacoco {
-    toolVersion = "0.8.8"
+    toolVersion = "0.8.13"
 }
 
 jacocoTestReport {
@@ -195,29 +149,16 @@ jacocoTestReport {
 }
 
 coveralls {
-    jacocoReportPath 'build/reports/jacoco/test/jacocoTestReport.xml'
-}
-
-task createPluginClasspath {
-    def outputDir = file("${buildDir}/resources/test")
-
-    inputs.files sourceSets.test.runtimeClasspath
-    outputs.dir outputDir
-
-    doLast {
-        outputDir.mkdirs()
-        file("${outputDir}/plugin-classpath.txt").text = sourceSets.test.runtimeClasspath.join('\n',)
-    }
+    jacocoReportPath = 'build/reports/jacoco/test/jacocoTestReport.xml'
 }
 
 test {
     useJUnitPlatform()
-    dependsOn('createPluginClasspath')
 }
 
 /**
- * 1. gradlew clean build release
- * 2. in Sonatype -> Staging Repositories, delete the io/github/reyerizo/gradle/jcstress/ branch
- * 3. Close the repository,
- * 4. Release the repository,
+ * To release: gradlew clean build release
+ *
+ * That tags the release and publishes it to the Gradle Plugin Portal, which needs
+ * gradle.publish.key and gradle.publish.secret in ~/.gradle/gradle.properties.
  */

@@ -14,14 +14,6 @@ class JcstressPluginForkedTestSpec extends Specification {
     @TempDir
     File testProjectDir
 
-    def pluginClasspath
-
-    def setup() {
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
-    }
-
     def "should complete a forked run"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-forked").toURI()).toFile()
@@ -46,7 +38,7 @@ class JcstressPluginForkedTestSpec extends Specification {
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .build()
     }
 

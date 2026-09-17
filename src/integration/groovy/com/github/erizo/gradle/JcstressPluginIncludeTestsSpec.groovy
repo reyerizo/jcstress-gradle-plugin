@@ -14,14 +14,6 @@ class JcstressPluginIncludeTestsSpec extends Specification {
     @TempDir
     File testProjectDir
 
-    def pluginClasspath
-
-    def setup() {
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
-    }
-
     def "should include a test class a simple run"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-include-tests").toURI()).toFile()
@@ -46,7 +38,7 @@ class JcstressPluginIncludeTestsSpec extends Specification {
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .build()
     }
 

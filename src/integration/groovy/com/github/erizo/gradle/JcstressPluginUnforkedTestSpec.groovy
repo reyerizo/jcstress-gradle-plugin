@@ -14,14 +14,6 @@ class JcstressPluginUnforkedTestSpec extends Specification {
     @TempDir
     File testProjectDir
 
-    def pluginClasspath
-
-    def setup() {
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
-    }
-
     def "should complete an unforked run"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
@@ -47,7 +39,7 @@ class JcstressPluginUnforkedTestSpec extends Specification {
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .withDebug(true)
                 .build()
     }
