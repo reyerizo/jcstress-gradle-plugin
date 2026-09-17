@@ -2,22 +2,22 @@ buildscript {
     repositories {
         mavenLocal()
         maven {
-            url "https://plugins.gradle.org/m2/"
+            url = "https://plugins.gradle.org/m2/"
         }
     }
     dependencies {
-        classpath 'net.researchgate:gradle-release:2.8.1'
+        classpath 'net.researchgate:gradle-release:3.1.0'
     }
 }
 
 plugins {
     id 'jacoco'
     id 'java-gradle-plugin'
-    id 'com.github.kt3k.coveralls' version '2.12.0'
-    id 'com.gradle.plugin-publish' version '1.1.0'
+    id 'com.github.kt3k.coveralls' version '2.12.2'
+    id 'com.gradle.plugin-publish' version '2.2.1'
 }
 
-group 'io.github.reyerizo.gradle'
+group = 'io.github.reyerizo.gradle'
 
 apply plugin: 'net.researchgate.release'
 apply plugin: 'groovy'
@@ -73,6 +73,12 @@ task integrationTestJava11(type: Test) {
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(11)
     }
+    // Gradle 9, the TestKit default, needs Java 17, so this executor only runs
+    // the specs that pin an older Gradle version.
+    filter {
+        includeTestsMatching 'com.github.erizo.gradle.JcstressPluginCompatibleVersionsSpec'
+        includeTestsMatching 'com.github.erizo.gradle.JcstressPluginIntegrationCasesSpec'
+    }
 }
 
 task integrationTestJava17(type: Test) {
@@ -88,22 +94,6 @@ task integrationTest {
     dependsOn(integrationTestJava11, integrationTestJava17)
 }
 
-task createClasspathManifest {
-    def outputDir = file("$buildDir/$name")
-
-    inputs.files sourceSets.main.runtimeClasspath
-    outputs.dir outputDir
-
-    doLast {
-        outputDir.mkdirs()
-        file("$outputDir/plugin-classpath.txt").text = sourceSets.main.runtimeClasspath.join("\n")
-    }
-}
-
-compileIntegrationGroovy {
-    dependsOn 'createPluginClasspath'
-}
-
 rootProject.tasks.named("processIntegrationResources") {
     duplicatesStrategy = 'include'
 }
@@ -112,14 +102,14 @@ dependencies {
     implementation localGroovy()
     implementation gradleApi()
 
-    testImplementation('org.spockframework:spock-core:2.1-groovy-3.0') {
+    testImplementation('org.spockframework:spock-core:2.3-groovy-4.0') {
         exclude(module: 'groovy-all')
     }
 
     testImplementation 'commons-io:commons-io:2.11.0'
     testCompileOnly 'org.openjdk.jcstress:jcstress-core:0.15'
     testImplementation gradleTestKit()
-    testRuntimeOnly files(createClasspathManifest)
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 afterReleaseBuild.dependsOn(publishPlugins)
@@ -158,8 +148,8 @@ publishing {
             def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
             credentials {
-                username "${ossrhUsername}"
-                password "${ossrhPassword}"
+                username = "${ossrhUsername}"
+                password = "${ossrhPassword}"
             }
         }
     }
@@ -172,6 +162,7 @@ signing {
 gradlePlugin {
     website = 'https://github.com/reyerizo/jcstress-gradle-plugin'
     vcsUrl = 'https://github.com/reyerizo/jcstress-gradle-plugin'
+    testSourceSets(sourceSets.test, sourceSets.integration)
     plugins {
         jcstressGradlePlugin {
             id = 'io.github.reyerizo.gradle.jcstress'
@@ -184,7 +175,7 @@ gradlePlugin {
 }
 
 jacoco {
-    toolVersion = "0.8.8"
+    toolVersion = "0.8.13"
 }
 
 jacocoTestReport {
@@ -195,24 +186,11 @@ jacocoTestReport {
 }
 
 coveralls {
-    jacocoReportPath 'build/reports/jacoco/test/jacocoTestReport.xml'
-}
-
-task createPluginClasspath {
-    def outputDir = file("${buildDir}/resources/test")
-
-    inputs.files sourceSets.test.runtimeClasspath
-    outputs.dir outputDir
-
-    doLast {
-        outputDir.mkdirs()
-        file("${outputDir}/plugin-classpath.txt").text = sourceSets.test.runtimeClasspath.join('\n',)
-    }
+    jacocoReportPath = 'build/reports/jacoco/test/jacocoTestReport.xml'
 }
 
 test {
     useJUnitPlatform()
-    dependsOn('createPluginClasspath')
 }
 
 /**

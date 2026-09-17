@@ -15,14 +15,10 @@ class JcstressPluginFunctionalSpec extends Specification {
 
     def buildFile
     def settingsFile
-    def pluginClasspath
 
     def setup() {
         buildFile = new File(testProjectDir, 'build.gradle')
         settingsFile = new File(testProjectDir, 'settings.gradle')
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
         buildFile << buildFileContents
         settingsFile << settingsFileContents
     }
@@ -55,7 +51,7 @@ class JcstressPluginFunctionalSpec extends Specification {
                 .withArguments(taskName, '-i', '--stacktrace', '--refresh-dependencies')
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .build()
     }
 

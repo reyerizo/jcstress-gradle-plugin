@@ -17,14 +17,6 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
     @TempDir
     File testProjectDir
 
-    def pluginClasspath
-
-    def setup() {
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
-    }
-
     def "should produce two separate jars"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-twojar").toURI()).toFile()
@@ -86,10 +78,9 @@ class JcstressPluginIntegrationCasesSpec extends Specification {
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
                 .withArguments(arguments)
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .withDebug(true)
                 .build()
     }
-
 
 }

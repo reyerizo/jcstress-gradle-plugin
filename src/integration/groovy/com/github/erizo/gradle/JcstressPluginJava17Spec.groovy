@@ -16,14 +16,6 @@ class JcstressPluginJava17Spec extends Specification {
     @TempDir
     File testProjectDir
 
-    def pluginClasspath
-
-    def setup() {
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
-    }
-
     def "should run with 7.5.1 and java 17"() {
         given:
         def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity-java-17").toURI()).toFile()
@@ -53,7 +45,7 @@ class JcstressPluginJava17Spec extends Specification {
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
                 .withArguments(arguments)
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .withDebug(true)
                 .build()
     }

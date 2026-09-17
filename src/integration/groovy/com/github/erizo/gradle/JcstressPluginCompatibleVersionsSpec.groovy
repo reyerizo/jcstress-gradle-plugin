@@ -15,14 +15,6 @@ class JcstressPluginCompatibleVersionsSpec extends Specification {
     @TempDir
     File testProjectDir
 
-    def pluginClasspath
-
-    def setup() {
-        pluginClasspath = getClass().classLoader.findResource('plugin-classpath.txt').readLines().collect {
-            new File(it)
-        }
-    }
-
     @Requires({ !jvm.java17Compatible }) // Java17 support was added in Gradle 7.3
     def "should run with 7.0"() {
         given:
@@ -89,6 +81,25 @@ class JcstressPluginCompatibleVersionsSpec extends Specification {
 
         when:
         def result = runGradleTask('8.0.1', 'jcstress')
+        def errorMessage = result.output.find('FATAL: (.*)')
+        def runResults = result.output.find('RUN RESULTS')
+
+        then:
+        verifyAll {
+            result.task(":jcstress").outcome == TaskOutcome.SUCCESS
+            errorMessage == null
+            runResults == 'RUN RESULTS'
+        }
+    }
+
+    @Requires({ jvm.java17Compatible })
+    def "should run with 9.7.1"() {
+        given:
+        def jcstressProjectRoot = Paths.get(getClass().classLoader.getResource("simple-application-sanity").toURI()).toFile()
+        FileUtils.copyDirectory(jcstressProjectRoot, testProjectDir, false)
+
+        when:
+        def result = runGradleTask('9.7.1', 'jcstress')
         def errorMessage = result.output.find('FATAL: (.*)')
         def runResults = result.output.find('RUN RESULTS')
 
@@ -168,7 +179,7 @@ class JcstressPluginCompatibleVersionsSpec extends Specification {
                 .forwardStdOutput(System.out.newPrintWriter())
                 .forwardStdError(System.err.newPrintWriter())
                 .withArguments(arguments)
-                .withPluginClasspath(pluginClasspath)
+                .withPluginClasspath()
                 .build()
     }
 

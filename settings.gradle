@@ -1,2 +1,7 @@
+plugins {
+    // Gradle 9 no longer downloads Java toolchains without a resolver plugin
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
 rootProject.name = 'jcstress-gradle-plugin'
 

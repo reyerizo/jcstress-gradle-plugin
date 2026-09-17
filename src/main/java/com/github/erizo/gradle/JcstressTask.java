@@ -9,8 +9,10 @@ import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.work.DisableCachingByDefault;
 
-public class JcstressTask extends JavaExec {
+@DisableCachingByDefault(because = "Runs the jcstress suite, whose results depend on the machine it runs on")
+public abstract class JcstressTask extends JavaExec {
 
     private String jcstressTestName;
 

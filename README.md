@@ -114,6 +114,34 @@ jcstress {
 }
 ```
 
+### Gradle compatibility
+
+The plugin is verified against the following Gradle versions:
+
+| Gradle  | Minimum JDK |
+|---------|-------------|
+| 5.6.4   | 8           |
+| 6.6.1   | 8           |
+| 7.0     | 8           |
+| 7.3.2   | 8           |
+| 7.5.1   | 8           |
+| 8.0.1   | 8           |
+| 9.0.0   | 17          |
+| 9.7.1   | 17          |
+
+Gradle 9 and newer require Java 17 or later.
+
+The `jcstress` task is compatible with the [configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html).
+
+### Building the plugin
+
+The build itself runs on Gradle 9.7.1, which needs JDK 17. The integration tests additionally use a JDK 11
+toolchain to drive the older Gradle versions listed above; it is downloaded automatically if it is not installed.
+
+```
+./gradlew clean build integrationTest
+```
+
 ### Notes
 
 - This plugin is heavily based on [jmh-gradle-plugin](https://github.com/melix/jmh-gradle-plugin) and should behave in a similar way.
