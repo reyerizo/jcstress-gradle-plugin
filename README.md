@@ -116,27 +116,27 @@ jcstress {
 
 ### Gradle compatibility
 
-The plugin is verified against the following Gradle versions:
+The plugin requires **Gradle 8.0 or newer**, and is verified against the following versions:
 
-| Gradle  | Minimum JDK |
-|---------|-------------|
-| 5.6.4   | 8           |
-| 6.6.1   | 8           |
-| 7.0     | 8           |
-| 7.3.2   | 8           |
-| 7.5.1   | 8           |
-| 8.0.1   | 8           |
-| 9.0.0   | 17          |
-| 9.7.1   | 17          |
+| Gradle  | Minimum JDK | Note                               |
+|---------|-------------|------------------------------------|
+| 8.0.1   | 8           | oldest supported release           |
+| 8.14.5  | 8           | latest 8.x, security fixes only    |
+| 9.0.0   | 17          |                                    |
+| 9.7.1   | 17          | latest release                     |
 
 Gradle 9 and newer require Java 17 or later.
+
+Support follows Gradle's own end-of-life policy, which covers the current and the previous major
+version. Gradle 7 and older reached end of life in July 2025; use plugin version 0.9.0 or earlier
+for those.
 
 The `jcstress` task is compatible with the [configuration cache](https://docs.gradle.org/current/userguide/configuration_cache.html).
 
 ### Building the plugin
 
-The build itself runs on Gradle 9.7.1, which needs JDK 17. The integration tests additionally use a JDK 11
-toolchain to drive the older Gradle versions listed above; it is downloaded automatically if it is not installed.
+The build itself runs on Gradle 9.7.1, and the integration tests use a JDK 17 toolchain, so JDK 17 or
+newer is needed to build the plugin.
 
 ```
 ./gradlew clean build integrationTest

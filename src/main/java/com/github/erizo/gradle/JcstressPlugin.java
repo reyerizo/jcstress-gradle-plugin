@@ -30,7 +30,6 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
@@ -223,7 +222,7 @@ public class JcstressPlugin implements Plugin<Project> {
         final JcstressTask jcstressTask = project.getTasks().create(TASK_JCSTRESS_NAME, JcstressTask.class);
 
         jcstressTask.dependsOn(jcstressJarTask);
-        setMainClass(jcstressTask);
+        jcstressTask.getMainClass().set(JCSTRESS_MAIN_CLASS_NAME);
         jcstressTask.setGroup("Verification");
         jcstressTask.setDescription("Runs jcstress benchmarks.");
         jcstressTask.setJvmArgs(Arrays.asList("-XX:+UnlockDiagnosticVMOptions", "-XX:+WhiteBoxAPI", "-XX:-RestrictContended", "-Duser.language=" + jcstressPluginExtension.getLanguage()));
@@ -271,11 +270,7 @@ public class JcstressPlugin implements Plugin<Project> {
                 .plus(project.getConfigurations().getByName(JCSTRESS_SOURCESET_NAME + "RuntimeClasspath"))
                 .plus(mainRuntimeClasspath));
 
-        if(isAtLeastGradle("6.0")) {
-            createStartScriptsTask.getMainClass().set(JCSTRESS_MAIN_CLASS_NAME);
-        } else {
-            setGradle5MainClassName(createStartScriptsTask);
-        }
+        createStartScriptsTask.getMainClass().set(JCSTRESS_MAIN_CLASS_NAME);
 
         createStartScriptsTask.setApplicationName(jcstressApplicationName);
         createStartScriptsTask.setOutputDir(new File(getBuildDirectory(), "scripts"));
@@ -293,18 +288,6 @@ public class JcstressPlugin implements Plugin<Project> {
         });
 
         return createStartScriptsTask;
-    }
-
-    /**
-     * Sets the main class through {@code CreateStartScripts.setMainClassName}, which was removed in Gradle 8.
-     */
-    private static void setGradle5MainClassName(CreateStartScripts createStartScriptsTask) {
-        try {
-            Method method = CreateStartScripts.class.getMethod("setMainClassName", String.class);
-            method.invoke(createStartScriptsTask, JCSTRESS_MAIN_CLASS_NAME);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("Failed to set main class to [" + JCSTRESS_MAIN_CLASS_NAME + "]", e);
-        }
     }
 
     private static boolean isAtLeastGradle(String gradleVersion) {
@@ -358,7 +341,7 @@ public class JcstressPlugin implements Plugin<Project> {
         DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
 
         Distribution distribution = distributions.create("jcstress");
-        setDistributionBaseName(distribution);
+        distribution.getDistributionBaseName().set(jcstressApplicationName);
         configureDistSpec(distribution.getContents());
 
         Sync installTask = project.getTasks().create(TASK_JCSTRESS_INSTALL_NAME, Sync.class);
@@ -369,46 +352,6 @@ public class JcstressPlugin implements Plugin<Project> {
         installTask.into(new File(getBuildDirectory(), "install/" + jcstressApplicationName));
 
         return installTask;
-    }
-
-    private void setDistributionBaseName(Distribution distribution) {
-        if (isAtLeastGradle("7.0")) {
-            setGradle7BaseName(distribution);
-        } else {
-            setGradle6BaseName(distribution);
-        }
-    }
-
-    private void setGradle7BaseName(Distribution distribution) {
-        try {
-            Method method = Distribution.class.getDeclaredMethod("getDistributionBaseName");
-            Property<String> distributionBaseName = (Property<String>) method.invoke(distribution);
-            distributionBaseName.set(jcstressApplicationName);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("Failed to set distribution base name", e);
-        }
-    }
-
-    private void setGradle6BaseName(Distribution distribution) {
-        try {
-            Method method = Distribution.class.getDeclaredMethod("setBaseName", String.class);
-            method.invoke(distribution, jcstressApplicationName);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-            throw new IllegalStateException("Failed to set distribution base name", e);
-        }
-    }
-
-    private void setMainClass(JcstressTask jcstressTask) {
-        if (isAtLeastGradle("8.0")) {
-            jcstressTask.getMainClass().set(JCSTRESS_MAIN_CLASS_NAME);
-        } else {
-            try {
-                Method setMainMethod = JcstressTask.class.getMethod("setMain", String.class);
-                setMainMethod.invoke(jcstressTask, JCSTRESS_MAIN_CLASS_NAME);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-                throw new IllegalStateException("Failed to set main class to [" + JCSTRESS_MAIN_CLASS_NAME + "]", e);
-            }
-        }
     }
 
 
@@ -489,31 +432,7 @@ public class JcstressPlugin implements Plugin<Project> {
     }
 
     private SourceSetContainer getProjectSourceSets() {
-        if(isAtLeastGradle("7.1")) {
-            JavaPluginExtension plugin = project.getExtensions().getByType(JavaPluginExtension.class);
-            return plugin.getSourceSets();
-        } else {
-            return getGradle6SourceSets();
-        }
-    }
-
-    /**
-     * Reads the source sets through {@code JavaPluginConvention}, which was removed in Gradle 9.
-     */
-    private SourceSetContainer getGradle6SourceSets() {
-        try {
-            Class<?> conventionClass = Class.forName("org.gradle.api.plugins.Convention");
-            Class<?> javaPluginConventionClass = Class.forName("org.gradle.api.plugins.JavaPluginConvention");
-
-            Object convention = Project.class.getMethod("getConvention").invoke(project);
-            Object javaPluginConvention = conventionClass.getMethod("getPlugin", Class.class)
-                    .invoke(convention, javaPluginConventionClass);
-
-            return (SourceSetContainer) javaPluginConventionClass.getMethod("getSourceSets").invoke(javaPluginConvention);
-        } catch (ClassNotFoundException | NoSuchMethodException | IllegalAccessException |
-                 InvocationTargetException e) {
-            throw new IllegalStateException("Failed to read the source sets of the project", e);
-        }
+        return project.getExtensions().getByType(JavaPluginExtension.class).getSourceSets();
     }
 
     private void addDependency(Project project, String configurationName, String dependencyName) {

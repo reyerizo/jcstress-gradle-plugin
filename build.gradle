@@ -66,32 +66,13 @@ idea {
     }
 }
 
-task integrationTestJava11(type: Test) {
-    testClassesDirs = sourceSets.integration.output.classesDirs
-    classpath = sourceSets.integration.runtimeClasspath
-    useJUnitPlatform()
-    javaLauncher = javaToolchains.launcherFor {
-        languageVersion = JavaLanguageVersion.of(11)
-    }
-    // Gradle 9, the TestKit default, needs Java 17, so this executor only runs
-    // the specs that pin an older Gradle version.
-    filter {
-        includeTestsMatching 'com.github.erizo.gradle.JcstressPluginCompatibleVersionsSpec'
-        includeTestsMatching 'com.github.erizo.gradle.JcstressPluginIntegrationCasesSpec'
-    }
-}
-
-task integrationTestJava17(type: Test) {
+task integrationTest(type: Test) {
     testClassesDirs = sourceSets.integration.output.classesDirs
     classpath = sourceSets.integration.runtimeClasspath
     useJUnitPlatform()
     javaLauncher = javaToolchains.launcherFor {
         languageVersion = JavaLanguageVersion.of(17)
     }
-}
-
-task integrationTest {
-    dependsOn(integrationTestJava11, integrationTestJava17)
 }
 
 rootProject.tasks.named("processIntegrationResources") {

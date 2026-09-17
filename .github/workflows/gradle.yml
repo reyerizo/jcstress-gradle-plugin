@@ -15,14 +15,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # Gradle 9 needs JDK 17 to run, JDK 11 is used by the integration tests
-      # that drive older Gradle versions.
-      - name: Set up JDKs
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: |
-            11
-            17
+          java-version: '17'
           distribution: 'temurin'
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
