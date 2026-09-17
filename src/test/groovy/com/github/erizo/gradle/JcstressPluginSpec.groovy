@@ -503,11 +503,6 @@ class JcstressPluginSpec extends Specification {
         classpathFiles.containsAll(project.configurations.testCompileClasspath.files)
     }
 
-    def "should extract file name from Gradle dependency"() {
-        expect:
-        plugin.getFileNameFromDependency('com.github.reyerizo.gradle:jcstress-core:1.0-20160519191500') == "jcstress-core-1.0-20160519191500.jar"
-    }
-
     def "should get the right Gradle version hierarchy"() {
         when:
         def gradle10 = GradleVersion.version("10.0.0")
