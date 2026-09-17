@@ -118,14 +118,18 @@ jcstress {
 
 The plugin requires **Gradle 8.0 or newer**, and is verified against the following versions:
 
-| Gradle  | Minimum JDK | Note                               |
-|---------|-------------|------------------------------------|
-| 8.0.1   | 8           | oldest supported release           |
-| 8.14.5  | 8           | latest 8.x, security fixes only    |
-| 9.0.0   | 17          |                                    |
-| 9.7.1   | 17          | latest release                     |
+| Gradle  | Minimum JDK | jcstress | Note                            |
+|---------|-------------|----------|---------------------------------|
+| 8.0.1   | 8           | 0.16     | oldest supported release        |
+| 8.14.5  | 8           | 0.16     | latest 8.x, security fixes only |
+| 9.0.0   | 17          | 0.16     |                                 |
+| 9.7.1   | 17          | 0.16     | latest release                  |
 
 Gradle 9 and newer require Java 17 or later.
+
+Every row is verified against jcstress 0.16, the version the plugin depends on by default, and the
+newest one published. Other versions can be selected with `jcstressDependency`, but are not covered
+by the matrix.
 
 Support follows Gradle's own end-of-life policy, which covers the current and the previous major
 version. Gradle 7 and older reached end of life in July 2025; use plugin version 0.9.0 or earlier
