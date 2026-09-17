@@ -24,7 +24,6 @@ apply plugin: 'groovy'
 apply plugin: 'maven-publish'
 apply plugin: 'idea'
 apply plugin: "com.gradle.plugin-publish"
-apply plugin: 'signing'
 
 compileGroovy.options.encoding = 'UTF-8'
 
@@ -32,9 +31,6 @@ repositories {
     mavenCentral()
     mavenLocal()
 }
-
-if (!project.hasProperty('ossrhUsername')) ext.ossrhUsername = '**undefined**'
-if (!project.hasProperty('ossrhPassword')) ext.ossrhPassword = '**undefined**'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -95,6 +91,7 @@ dependencies {
 
 afterReleaseBuild.dependsOn(publishPlugins)
 
+// The pom of this publication is what the Gradle Plugin Portal publishes alongside the jar.
 publishing {
     publications {
         pluginMaven(MavenPublication) {
@@ -122,22 +119,6 @@ publishing {
             }
         }
     }
-
-    repositories {
-        maven {
-            def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
-            def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            credentials {
-                username = "${ossrhUsername}"
-                password = "${ossrhPassword}"
-            }
-        }
-    }
-}
-
-signing {
-    sign publishing.publications.pluginMaven
 }
 
 gradlePlugin {
@@ -175,8 +156,8 @@ test {
 }
 
 /**
- * 1. gradlew clean build release
- * 2. in Sonatype -> Staging Repositories, delete the io/github/reyerizo/gradle/jcstress/ branch
- * 3. Close the repository,
- * 4. Release the repository,
+ * To release: gradlew clean build release
+ *
+ * That tags the release and publishes it to the Gradle Plugin Portal, which needs
+ * gradle.publish.key and gradle.publish.secret in ~/.gradle/gradle.properties.
  */
