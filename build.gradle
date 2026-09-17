@@ -33,9 +33,14 @@ repositories {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
     withJavadocJar()
     withSourcesJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    // Gradle 8 still runs on Java 8. 'release' checks the API against Java 8,
+    // which sourceCompatibility alone does not do.
+    options.release = 8
 }
 
 sourceSets {
@@ -149,6 +154,7 @@ jacoco {
 }
 
 jacocoTestReport {
+    executionData.from fileTree(layout.buildDirectory.dir('jacoco')).include('*.exec')
     reports {
         xml.required = true // coveralls plugin depends on xml format report
         html.required = true

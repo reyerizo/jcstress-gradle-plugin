@@ -41,15 +41,9 @@ import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
@@ -238,7 +232,6 @@ public class JcstressPlugin implements Plugin<Project> {
             jcstressTask.reportsDirectory = new File(jcstressPluginExtension.getReportDir());
 
             jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(project.files(jcstressJarTask.getArchiveFile())));
-            filterConfiguration(jcstressConfiguration, "jcstress-core");
             if (jcstressPluginExtension.getIncludeTests()) {
                 jcstressTask.setProperty("classpath", jcstressTask.getClasspath().plus(testRuntimeClasspath));
             }
@@ -296,43 +289,25 @@ public class JcstressPlugin implements Plugin<Project> {
 
     private void configureInstallTasks(Sync installTask) {
         installTask.doFirst(new VerifyInstallDirectory());
-        installTask.doLast(new MakeStartScriptsExecutable(jcstressApplicationName));
     }
 
     /**
-     * Named classes rather than lambdas, because Gradle cannot track the implementation of a lambda.
-     * They only hold plain values, so that they can be stored in the configuration cache.
+     * A named class rather than a lambda, because Gradle cannot track the implementation of a lambda.
+     * It holds plain values only, so that it can be stored in the configuration cache.
      */
     private static final class VerifyInstallDirectory implements Action<Task> {
         @Override
         public void execute(Task task) {
             File destinationDir = ((Sync) task).getDestinationDir();
-            if (destinationDir.isDirectory()) {
+            String[] existingContents = destinationDir.list();
+            // Gradle creates the output directory before the task runs, so an empty one is not a clash
+            if (existingContents != null && existingContents.length > 0) {
                 if (!new File(destinationDir, "lib").isDirectory() || !new File(destinationDir, "bin").isDirectory()) {
                     throw new GradleException("The specified installation directory '" + destinationDir
                             + "' is neither empty nor does it contain an installation for this application.\n"
                             + "If you really want to install to this directory, delete it and run the install task again.\n"
                             + "Alternatively, choose a different installation directory.");
                 }
-            }
-        }
-    }
-
-    private static final class MakeStartScriptsExecutable implements Action<Task> {
-        private final String applicationName;
-
-        private MakeStartScriptsExecutable(String applicationName) {
-            this.applicationName = applicationName;
-        }
-
-        @Override
-        public void execute(Task task) {
-            Path bin = Paths.get(((Sync) task).getDestinationDir().getAbsolutePath(), "bin", applicationName);
-            try {
-                Set<PosixFilePermission> posixFilePermissions = PosixFilePermissions.fromString("ugo+x");
-                Files.setPosixFilePermissions(bin, posixFilePermissions);
-            } catch (IOException e) {
-                throw new UncheckedIOException("Failed to update attributes of [" + bin + "]", e);
             }
         }
     }
@@ -363,7 +338,10 @@ public class JcstressPlugin implements Plugin<Project> {
         copy.from(project.file("src/dist"));
         copy.into("lib", cs -> {
             cs.from(jar);
-            cs.from(jcstressConfiguration.plus(mainRuntimeClasspath));
+            // The same classpath the start scripts are generated against: the bare jcstress
+            // configuration holds no dependencies, they live in jcstressRuntimeClasspath.
+            cs.from(project.getConfigurations().getByName(JCSTRESS_SOURCESET_NAME + "RuntimeClasspath")
+                    .plus(mainRuntimeClasspath));
         });
 
         copy.into("bin", cs -> {
@@ -442,21 +420,5 @@ public class JcstressPlugin implements Plugin<Project> {
         project.getConfigurations().getByName(configurationName).getDependencies().add(dependency);
     }
 
-
-    public static String getFileNameFromDependency(String gradleDependencyName) {
-        String[] split = gradleDependencyName.split(":");
-        return split[1] + "-" + split[2] + ".jar";
-    }
-
-    /**
-     * Dummy method, loads configuration dependencies.
-     *
-     * @param configuration configuration
-     * @param jarFileName   jar file name
-     * @return ignored
-     */
-    private static Set<File> filterConfiguration(Configuration configuration, final String jarFileName) {
-        return configuration.filter(it -> it.getName().contains(jarFileName)).getFiles();
-    }
 
 }

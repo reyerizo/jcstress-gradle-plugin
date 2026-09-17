@@ -90,30 +90,6 @@ More options are available, but you probably won't need them:
 | --- | --- |
 | `language` | format numbers according to the given locale, eg `en`, `fr`, etc. Will default to `en`. If unsure, just leave as is) |
 
-Options deprecated - will be removed completely in the next version. In current version, they don't have any effect.
-
-| Name          | Description                                                                                                                                                                |
-|---------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `concurrency` | Number of CPUs to use. Defaults to all CPUs in the system. Reducing the number of CPUs limits the amount of resources (including memory) the run is using.                 |
-| `deoptratio`  | Java heap size per fork, in megabytes. This affects the stride size: maximum footprint will never be exceeded, regardless of min/max stride sizes.                         |
-| `maxStride`   | Should fork each test N times. `0` to run in the embedded mode with occasional forking, `-1` to never ever fork.                                                           |
-| `minStride`   | Iterations per test.                                                                                                                                                       |
-
-The plugin uses a separate location for `jcstress` files:
-
-```
-src/jcstress/java       // java sources
-src/jcstress/resources  // resources
-```
-
-By default, the plugin uses `jcstress-core-0.16`. This can be easily changed with the following:
-
-```groovy
-jcstress {
-    jcstressDependency 'org.openjdk.jcstress:jcstress-core:0.x'
-}
-```
-
 ### What's new in 1.0.0
 
 - Gradle 9 is supported, and the build is verified up to Gradle 9.7.1.

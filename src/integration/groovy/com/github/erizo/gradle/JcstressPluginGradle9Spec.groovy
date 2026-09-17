@@ -83,6 +83,23 @@ class JcstressPluginGradle9Spec extends Specification {
         }
     }
 
+    def "should install the application"() {
+        given:
+        copySampleProject("simple-application-sanity")
+
+        when:
+        def result = runGradleTask('jcstressInstall')
+
+        then:
+        verifyAll {
+            result.task(":jcstressInstall").outcome == TaskOutcome.SUCCESS
+            new File(testProjectDir, "build/install/jcstress-test-simple-jcstress/bin/jcstress-test-simple-jcstress").exists()
+            new File(testProjectDir, "build/install/jcstress-test-simple-jcstress/bin/jcstress-test-simple-jcstress.bat").exists()
+            new File(testProjectDir, "build/install/jcstress-test-simple-jcstress/lib").list()
+                    .any { it.startsWith("jcstress-core-") }
+        }
+    }
+
     def "should run with the configuration cache enabled"() {
         given:
         copySampleProject("simple-application-sanity")
