@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class JcstressPluginExtension {
 
-    public static final String JCSTRESS_DEFAULT_VERSION = "0.15";
+    public static final String JCSTRESS_DEFAULT_VERSION = "0.16";
 
     private Project project;
     private String jcstressDependency = "org.openjdk.jcstress:jcstress-core:" + JCSTRESS_DEFAULT_VERSION;

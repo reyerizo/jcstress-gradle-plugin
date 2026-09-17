@@ -48,6 +48,7 @@ sourceSets {
         }
 
         compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
     }
 }
 
@@ -84,7 +85,7 @@ dependencies {
     }
 
     testImplementation 'commons-io:commons-io:2.11.0'
-    testCompileOnly 'org.openjdk.jcstress:jcstress-core:0.15'
+    testCompileOnly 'org.openjdk.jcstress:jcstress-core:0.16'
     testImplementation gradleTestKit()
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

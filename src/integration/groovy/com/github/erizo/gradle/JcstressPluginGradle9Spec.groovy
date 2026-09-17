@@ -78,8 +78,8 @@ class JcstressPluginGradle9Spec extends Specification {
         then:
         verifyAll {
             result.task(":jcstressScripts").outcome == TaskOutcome.SUCCESS
-            getFileContents("build", "scripts", "jcstress-test-simple-jcstress").contains("jcstress-core-0.15.jar")
-            getFileContents("build", "scripts", "jcstress-test-simple-jcstress.bat").contains("jcstress-core-0.15.jar")
+            getFileContents("build", "scripts", "jcstress-test-simple-jcstress").contains("jcstress-core-${JcstressPluginExtension.JCSTRESS_DEFAULT_VERSION}.jar")
+            getFileContents("build", "scripts", "jcstress-test-simple-jcstress.bat").contains("jcstress-core-${JcstressPluginExtension.JCSTRESS_DEFAULT_VERSION}.jar")
         }
     }
 
